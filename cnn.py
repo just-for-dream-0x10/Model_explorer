@@ -61,7 +61,7 @@ def create_gradient(size, direction="diagonal"):
     return pattern
 
 
-def cnn_tab(CHINESE_SUPPORTED, kernel_size, stride, padding):
+def cnn_tab(CHINESE_SUPPORTED):
     """CNN标签页内容"""
 
     st.header("🔄 CNN卷积操作数学原理")
@@ -331,7 +331,7 @@ def cnn_tab(CHINESE_SUPPORTED, kernel_size, stride, padding):
 
         with col_formula:
             st.markdown("**卷积公式**")
-            display_latex("(f * g)[i,j] = \sum_{m} \sum_{n} f[m,n] \cdot g[i-m, j-n]")
+            display_latex(r"(f * g)[i,j] = \sum_{m} \sum_{n} f[m,n] \cdot g[i-m, j-n]")
 
             st.markdown("**输出尺寸计算**")
             st.markdown(
@@ -350,23 +350,23 @@ def cnn_tab(CHINESE_SUPPORTED, kernel_size, stride, padding):
 
         with col_example:
             st.markdown("**实际计算示例**")
-            input_size = 32
-            kernel_size = 3
-            stride = 1
-            padding = 1
+            example_input_size = 32
+            example_kernel_size = 3
+            example_stride = 1
+            example_padding = 1
 
-            h_out = (input_size + 2 * padding - kernel_size) // stride + 1
+            h_out = (example_input_size + 2 * example_padding - example_kernel_size) // example_stride + 1
 
             st.markdown(
                 f"""
             **给定参数**:
-            - 输入尺寸: {input_size} $$ \\times $$  {input_size}
-            - 卷积核: {kernel_size} $$ \\times $$ {kernel_size}
-            - 步长: {stride}
-            - 填充: {padding}
+            - 输入尺寸: {example_input_size} $$ \\times $$  {example_input_size}
+            - 卷积核: {example_kernel_size} $$ \\times $$ {example_kernel_size}
+            - 步长: {example_stride}
+            - 填充: {example_padding}
             
             **计算过程**:
-            $$ H_{{out}} = \\left\\lfloor \\frac{{H_{{in}} + 2P - K}}{{S}} \\right \\rfloor + 1  \\   \\frac{{input_size + 2 \\times padding - kernel_size}}{{stride}} + 1 = {{h_out}} $$
+            $$ H_{{out}} = \\left\\lfloor \\frac{{H_{{in}} + 2P - K}}{{S}} \\right \\rfloor + 1  \\   \\frac{{{example_input_size} + 2 \\times {example_padding} - {example_kernel_size}}}{{{example_stride}}} + 1 = {{h_out}} $$
             
             **输出尺寸**: {h_out} $$ \\times $$ {h_out}
             """
@@ -378,6 +378,11 @@ def cnn_tab(CHINESE_SUPPORTED, kernel_size, stride, padding):
     st.markdown("---")
     st.markdown("### 🧮 手动计算演示")
 
+    # 定义用于手动计算演示的参数
+    kernel_size = 3
+    stride = 1
+    padding = 0
+    
     # 创建示例输入和卷积核
     input_size = 5
     input_matrix = np.random.randn(input_size, input_size).round(2)
@@ -539,4 +544,4 @@ def cnn_tab(CHINESE_SUPPORTED, kernel_size, stride, padding):
 
 if __name__ == "__main__":
     # 独立运行时的测试
-    cnn_tab(True, 3, 1, 0)
+    cnn_tab(True)
