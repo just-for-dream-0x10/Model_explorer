@@ -133,6 +133,135 @@ TEXT_CONFIG = {
 }
 
 
+# 模拟训练函数（需要在使用前定义）
+def simulate_training(**kwargs):
+    """模拟训练过程，返回结果"""
+    import time
+    import random
+
+    # 模拟训练时间
+    training_time = random.uniform(0.5, 2.0)
+    time.sleep(0.01)  # 模拟计算延迟
+
+    # 根据参数生成模拟结果
+    comparison_type = kwargs.get("comparison_type", "")
+
+    if comparison_type == "优化器性能对比":
+        optimizer = kwargs.get("optimizer", "SGD")
+        lr = kwargs.get("learning_rate", 0.001)
+        epochs = kwargs.get("epochs", 100)
+
+        # 不同优化器的特性
+        base_loss = 2.0
+        optimizer_factor = {
+            "SGD": 1.0,
+            "Adam": 0.7,
+            "RMSprop": 0.8,
+            "Momentum": 0.75,
+            "AdaGrad": 0.9,
+            "Nesterov": 0.72,
+        }
+        lr_factor = min(lr / 0.01, 1.0) * 2  # 学习率影响
+
+        final_loss = base_loss * optimizer_factor.get(
+            optimizer, 1.0
+        ) * lr_factor + random.uniform(-0.1, 0.1)
+        final_loss = max(0.1, final_loss)  # 确保损失为正
+
+    elif comparison_type == "学习率影响分析":
+        lr = kwargs.get("learning_rate", 0.001)
+        epochs = kwargs.get("epochs", 100)
+
+        # 学习率对损失的影响（U型曲线）
+        optimal_lr = 0.01
+        lr_factor = 1 + abs(np.log(lr / optimal_lr))
+        final_loss = 0.5 + lr_factor + random.uniform(-0.2, 0.2)
+
+    elif comparison_type == "网络深度对比":
+        depth = kwargs.get("depth", 4)
+        hidden_dim = kwargs.get("hidden_dim", 64)
+        lr = kwargs.get("learning_rate", 0.01)
+        epochs = kwargs.get("epochs", 100)
+
+        # 深度对损失的影响
+        if depth <= 4:
+            depth_factor = 1.0 + (4 - depth) * 0.2  # 欠拟合
+        else:
+            depth_factor = 0.8 + (depth - 4) * 0.05  # 过拟合
+
+        final_loss = 0.3 + depth_factor + random.uniform(-0.1, 0.1)
+
+    elif comparison_type == "激活函数性能":
+        activation = kwargs.get("activation", "ReLU")
+        lr = kwargs.get("learning_rate", 0.01)
+        epochs = kwargs.get("epochs", 100)
+
+        # 不同激活函数的性能
+        activation_factor = {
+            "ReLU": 0.8,
+            "Leaky ReLU": 0.75,
+            "ELU": 0.7,
+            "Swish": 0.65,
+            "GELU": 0.68,
+            "Tanh": 0.9,
+            "Sigmoid": 1.2,
+        }
+
+        final_loss = (
+            0.4 + activation_factor.get(activation, 1.0) + random.uniform(-0.1, 0.1)
+        )
+
+    elif comparison_type == "正则化效果对比":
+        dropout = kwargs.get("dropout", 0.0)
+        l2_reg = kwargs.get("l2_reg", 0.0)
+        lr = kwargs.get("learning_rate", 0.01)
+        epochs = kwargs.get("epochs", 100)
+
+        # 正则化对损失的影响
+        if dropout == 0.0 and l2_reg == 0.0:
+            reg_factor = 1.5  # 无正则化，过拟合
+        else:
+            reg_factor = 0.8 + dropout * 0.5 + l2_reg * 0.3
+
+        final_loss = 0.6 + reg_factor + random.uniform(-0.1, 0.1)
+
+    else:
+        # 默认情况
+        final_loss = 1.0 + random.uniform(-0.2, 0.2)
+
+    # 生成损失曲线
+    epochs = kwargs.get("epochs", 100)
+    losses = []
+    current_loss = 2.0
+
+    for epoch in range(epochs):
+        # 模拟损失下降过程
+        decay_rate = 0.95 + random.uniform(-0.05, 0.05)
+        noise = random.uniform(-0.02, 0.02)
+        current_loss = max(final_loss, current_loss * decay_rate + noise)
+        losses.append(current_loss)
+
+    # 计算收敛epoch（损失降低到最终损失的1.1倍）
+    convergence_threshold = final_loss * 1.1
+    convergence_epoch = next(
+        (i for i, loss in enumerate(losses) if loss <= convergence_threshold),
+        epochs - 1,
+    )
+
+    # 生成准确率
+    final_accuracy = max(
+        0.5, min(0.95, 1.0 - final_loss / 2.0 + random.uniform(-0.05, 0.05))
+    )
+
+    return {
+        "losses": losses,
+        "final_loss": final_loss,
+        "convergence_epoch": convergence_epoch,
+        "final_accuracy": final_accuracy,
+        "training_time": training_time,
+    }
+
+
 # 获取当前语言的文本配置
 def get_text(key):
     return TEXT_CONFIG["chinese" if CHINESE_SUPPORTED else "english"][key]
@@ -1663,7 +1792,7 @@ with tab7:
             - 输出尺寸: {output_h} × {output_w}
             
             **公式**: 
-            $H_{{out}} = \left\lfloor \frac{{H_{{in}} + 2P - K}}{{S}} \right\rfloor + 1$
+            $H_{{out}} = \\left\\lfloor \\frac{{H_{{in}} + 2P - K}}{{S}} \\right\\rfloor + 1$
             """
             )
 
@@ -2811,137 +2940,11 @@ with tab7:
 
 
 # 模拟训练函数
-def simulate_training(**kwargs):
-    """模拟训练过程，返回结果"""
-    import time
-    import random
-
-    # 模拟训练时间
-    training_time = random.uniform(0.5, 2.0)
-    time.sleep(0.01)  # 模拟计算延迟
-
-    # 根据参数生成模拟结果
-    comparison_type = kwargs.get("comparison_type", "")
-
-    if comparison_type == "优化器性能对比":
-        optimizer = kwargs.get("optimizer", "SGD")
-        lr = kwargs.get("learning_rate", 0.001)
-        epochs = kwargs.get("epochs", 100)
-
-        # 不同优化器的特性
-        base_loss = 2.0
-        optimizer_factor = {
-            "SGD": 1.0,
-            "Adam": 0.7,
-            "RMSprop": 0.8,
-            "Momentum": 0.75,
-            "AdaGrad": 0.9,
-            "Nesterov": 0.72,
-        }
-        lr_factor = min(lr / 0.01, 1.0) * 2  # 学习率影响
-
-        final_loss = base_loss * optimizer_factor.get(
-            optimizer, 1.0
-        ) * lr_factor + random.uniform(-0.1, 0.1)
-        final_loss = max(0.1, final_loss)  # 确保损失为正
-
-    elif comparison_type == "学习率影响分析":
-        lr = kwargs.get("learning_rate", 0.001)
-        epochs = kwargs.get("epochs", 100)
-
-        # 学习率对损失的影响（U型曲线）
-        optimal_lr = 0.01
-        lr_factor = 1 + abs(np.log(lr / optimal_lr))
-        final_loss = 0.5 + lr_factor + random.uniform(-0.2, 0.2)
-
-    elif comparison_type == "网络深度对比":
-        depth = kwargs.get("depth", 4)
-        hidden_dim = kwargs.get("hidden_dim", 64)
-        lr = kwargs.get("learning_rate", 0.01)
-        epochs = kwargs.get("epochs", 100)
-
-        # 深度对损失的影响
-        if depth <= 4:
-            depth_factor = 1.0 + (4 - depth) * 0.2  # 欠拟合
-        else:
-            depth_factor = 0.8 + (depth - 4) * 0.05  # 过拟合
-
-        final_loss = 0.3 + depth_factor + random.uniform(-0.1, 0.1)
-
-    elif comparison_type == "激活函数性能":
-        activation = kwargs.get("activation", "ReLU")
-        lr = kwargs.get("learning_rate", 0.01)
-        epochs = kwargs.get("epochs", 100)
-
-        # 不同激活函数的性能
-        activation_factor = {
-            "ReLU": 0.8,
-            "Leaky ReLU": 0.75,
-            "ELU": 0.7,
-            "Swish": 0.65,
-            "GELU": 0.68,
-            "Tanh": 0.9,
-            "Sigmoid": 1.2,
-        }
-
-        final_loss = (
-            0.4 + activation_factor.get(activation, 1.0) + random.uniform(-0.1, 0.1)
-        )
-
-    elif comparison_type == "正则化效果对比":
-        dropout = kwargs.get("dropout", 0.0)
-        l2_reg = kwargs.get("l2_reg", 0.0)
-        lr = kwargs.get("learning_rate", 0.01)
-        epochs = kwargs.get("epochs", 100)
-
-        # 正则化对损失的影响
-        if dropout == 0.0 and l2_reg == 0.0:
-            reg_factor = 1.5  # 无正则化，过拟合
-        else:
-            reg_factor = 0.8 + dropout * 0.5 + l2_reg * 0.3
-
-        final_loss = 0.6 + reg_factor + random.uniform(-0.1, 0.1)
-
-    else:
-        # 默认情况
-        final_loss = 1.0 + random.uniform(-0.2, 0.2)
-
-    # 生成损失曲线
-    epochs = kwargs.get("epochs", 100)
-    losses = []
-    current_loss = 2.0
-
-    for epoch in range(epochs):
-        # 模拟损失下降过程
-        decay_rate = 0.95 + random.uniform(-0.05, 0.05)
-        noise = random.uniform(-0.02, 0.02)
-        current_loss = max(final_loss, current_loss * decay_rate + noise)
-        losses.append(current_loss)
-
-    # 计算收敛epoch（损失降低到最终损失的1.1倍）
-    convergence_threshold = final_loss * 1.1
-    convergence_epoch = next(
-        (i for i, loss in enumerate(losses) if loss <= convergence_threshold),
-        epochs - 1,
-    )
-
-    # 生成准确率
-    final_accuracy = max(
-        0.5, min(0.95, 1.0 - final_loss / 2.0 + random.uniform(-0.05, 0.05))
-    )
-
-    return {
-        "losses": losses,
-        "final_loss": final_loss,
-        "convergence_epoch": convergence_epoch,
-        "final_accuracy": final_accuracy,
-        "training_time": training_time,
-    }
-
+# 这个函数已经移到前面定义了，删除重复定义
 
 st.markdown("---")
 st.markdown(
-    "© 2025 "
+    "© 2025 Just For Dream Lab | "
     + (
         "神经网络数学原理探索器 | 深度学习数学教学工具"
         if CHINESE_SUPPORTED
