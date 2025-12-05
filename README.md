@@ -188,7 +188,7 @@ scikit-learn   # 机器学习工具
 
 ---
 
-### 🚧 Phase 1: 清理与重构（v1.5 - 进行中）
+### ✅ Phase 1: 清理与重构（v1.5 - 已完成大部分）
 
 #### 立即移除（避免重复）
 - [ ] ❌ **移除扩散模型模块** → 转移到 `vision` 项目
@@ -196,15 +196,49 @@ scikit-learn   # 机器学习工具
 - [ ] ❌ **移除优化器对比实验** → `Transformer_Explorer` 已有
 
 #### 核心功能增强
-- [ ] 🔧 **增强反向传播追踪**
-  - 逐层、逐神经元的数值展示
-  - 梯度流可视化（哪一层梯度变小了？）
-  - 支持自定义网络结构
+- [x] 🔧 **增强反向传播追踪** ✨ **已完成**
+  - ✅ 逐层、逐神经元的数值展示
+  - ✅ 梯度流可视化（哪一层梯度变小了？）
+  - ✅ 支持全连接、CNN、RNN三种网络类型
+  - ✅ 梯度数值验证（Gradient Checking）
+  - ✅ 梯度消失/爆炸检测
 
-- [ ] 📊 **参数量/FLOPs 计算器**
-  - 输入网络配置 → 自动计算 Params/FLOPs/Memory
-  - 支持常见层：Conv2d, Linear, BatchNorm, LayerNorm, Attention
-  - 生成详细报告（类似 `torchinfo`）
+- [x] 🎮 **交互实验室** ✨ **已完成**
+  - ✅ CNN特征图实时可视化
+  - ✅ GNN节点分类演示
+  - ✅ 激活函数交互式对比
+  - ✅ 优化器轨迹可视化
+  - ✅ 损失函数3D地形图
+  - ✅ 批量参数对比实验
+
+- [x] 📊 **参数量/FLOPs 计算器增强** ✨ **已完成并大幅扩展**
+  
+  **支持的层类型 (8种)**:
+  - ✅ Conv2d (标准卷积)
+  - ✅ DepthwiseConv2d (深度可分离卷积，MobileNet核心)
+  - ✅ Linear (全连接层)
+  - ✅ MultiHeadAttention (多头注意力，Transformer核心)
+  - ✅ LSTM (长短期记忆网络)
+  - ✅ Embedding (嵌入层)
+  - ✅ BatchNorm2d (批归一化)
+  - ✅ LayerNorm (层归一化，Transformer使用)
+  
+  **预定义网络 (7个架构)**:
+  - ✅ ResNet-18/50 (CNN经典)
+  - ✅ VGG-16 (CNN经典)
+  - ✅ MobileNetV2 (轻量级CNN)
+  - ✅ BERT-base (Transformer编码器，110M参数)
+  - ✅ GPT-2 small (Transformer解码器，117M参数)
+  - ✅ ViT-Base (Vision Transformer，86M参数)
+  
+  **功能特性**:
+  - ✅ 单层详细分析：参数量、FLOPs、内存占用、输出形状
+  - ✅ 完整网络分析：逐层统计 + 总体指标
+  - ✅ 自定义网络构建器：交互式添加层并实时计算
+  - ✅ 对比分析：Depthwise vs 标准卷积、LSTM vs GRU、LayerNorm vs BatchNorm
+  - ✅ 复杂度分析：注意力机制的O(n²)复杂度警告
+  - ✅ 可视化：参数分布、FLOPs分布、饼图
+  - ✅ Markdown报告生成：可下载详细分析报告
 
 ---
 
