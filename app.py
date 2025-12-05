@@ -15,6 +15,9 @@ from tabs.params_calculator import params_calculator_tab
 from tabs.math_derivation import math_derivation_tab
 from tabs.backpropagation import backpropagation_tab
 from tabs.interactive_lab import interactive_lab_tab
+from tabs.failure_museum import failure_museum_tab
+from tabs.resnet_analysis import resnet_analysis_tab
+from tabs.normalization_comparison import normalization_comparison_tab
 from cnn import cnn_tab
 from gnn import gnn_tab
 from rnn_lstm import rnn_lstm_tab
@@ -60,7 +63,7 @@ with st.sidebar:
 # ==========================================
 # 标签页
 # ==========================================
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "🔢 参数量计算器" if CHINESE_SUPPORTED else "🔢 Params Calculator",
     get_text("cnn_tab"),
     get_text("gnn_tab"),
@@ -68,6 +71,9 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     get_text("math_tab"),
     get_text("bp_tab"),
     "🎮 交互实验室" if CHINESE_SUPPORTED else "🎮 Interactive Lab",
+    "🏛️ 失败案例博物馆" if CHINESE_SUPPORTED else "🏛️ Failure Museum",
+    "🏗️ ResNet残差分析" if CHINESE_SUPPORTED else "🏗️ ResNet Analysis",
+    "🔧 归一化层对比" if CHINESE_SUPPORTED else "🔧 Normalization",
 ])
 
 # TAB 1: 参数量计算器 (核心差异化功能)
@@ -97,6 +103,18 @@ with tab6:
 # TAB 7: 交互实验室
 with tab7:
     interactive_lab_tab(CHINESE_SUPPORTED)
+
+# TAB 8: 失败案例博物馆
+with tab8:
+    failure_museum_tab(CHINESE_SUPPORTED)
+
+# TAB 9: ResNet残差分析
+with tab9:
+    resnet_analysis_tab(CHINESE_SUPPORTED)
+
+# TAB 10: 归一化层对比
+with tab10:
+    normalization_comparison_tab(CHINESE_SUPPORTED)
 
 # ==========================================
 # 页脚
