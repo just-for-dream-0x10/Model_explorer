@@ -9,6 +9,7 @@ from .resnet_analysis import resnet_analysis_tab
 from .normalization_comparison import normalization_comparison_tab
 from .vit_analysis import vit_analysis_tab
 from .architecture_comparison import architecture_comparison_tab
+from .memory_analysis import memory_analysis_tab
 
 __all__ = [
     'params_calculator_tab',
@@ -18,4 +19,5 @@ __all__ = [
     'normalization_comparison_tab',
     'vit_analysis_tab',
     'architecture_comparison_tab',
+    'memory_analysis_tab',
 ]

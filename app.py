@@ -20,6 +20,7 @@ from tabs.resnet_analysis import resnet_analysis_tab
 from tabs.normalization_comparison import normalization_comparison_tab
 from tabs.vit_analysis import vit_analysis_tab
 from tabs.architecture_comparison import architecture_comparison_tab
+from tabs.memory_analysis import memory_analysis_tab
 from cnn import cnn_tab
 from gnn import gnn_tab
 from rnn_lstm import rnn_lstm_tab
@@ -84,6 +85,7 @@ if CHINESE_SUPPORTED:
     if category == "🔧 基础工具":
         module_options = {
             "🔢 参数量计算器": "params_calculator",
+            "💾 内存分析器": "memory_analysis",
             "📐 数学推导工具": "math_derivation",
             "🎮 交互实验室": "interactive_lab"
         }
@@ -109,6 +111,7 @@ else:
     if category == "🔧 Basic Tools":
         module_options = {
             "🔢 Params Calculator": "params_calculator",
+            "💾 Memory Analyzer": "memory_analysis",
             "📐 Math Derivation": "math_derivation",
             "🎮 Interactive Lab": "interactive_lab"
         }
@@ -150,6 +153,8 @@ st.sidebar.info(f"📍 当前模块：{selected_module_name}" if CHINESE_SUPPORT
 # ==========================================
 if selected_module == "params_calculator":
     params_calculator_tab()
+elif selected_module == "memory_analysis":
+    memory_analysis_tab(CHINESE_SUPPORTED)
 elif selected_module == "math_derivation":
     math_derivation_tab()
 elif selected_module == "interactive_lab":
