@@ -355,7 +355,9 @@ def cnn_tab(CHINESE_SUPPORTED):
             example_stride = 1
             example_padding = 1
 
-            h_out = (example_input_size + 2 * example_padding - example_kernel_size) // example_stride + 1
+            h_out = (
+                example_input_size + 2 * example_padding - example_kernel_size
+            ) // example_stride + 1
 
             st.markdown(
                 f"""
@@ -382,7 +384,7 @@ def cnn_tab(CHINESE_SUPPORTED):
     kernel_size = 3
     stride = 1
     padding = 0
-    
+
     # 创建示例输入和卷积核
     input_size = 5
     input_matrix = np.random.randn(input_size, input_size).round(2)

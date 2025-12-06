@@ -50,9 +50,7 @@ def _convolution_theorem():
     display_latex(
         "= \\int f(\\tau) e^{-i\\omega \\tau} d\\tau \\cdot \\int g(u) e^{-i\\omega u} du"
     )
-    display_latex(
-        "= \\mathcal{F}\\{f\\}(\\omega) \\cdot \\mathcal{F}\\{g\\}(\\omega)"
-    )
+    display_latex("= \\mathcal{F}\\{f\\}(\\omega) \\cdot \\mathcal{F}\\{g\\}(\\omega)")
     st.markdown("$\\square$ 证毕")
 
     st.markdown("### 数值验证")
@@ -81,7 +79,7 @@ def _convolution_theorem():
         )
     )
     fig.update_layout(title="卷积定理验证", xaxis_title="时间", yaxis_title="幅度")
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, width="stretch")
 
     # 计算误差
     error = np.mean(np.abs(conv_time - conv_freq))
@@ -133,9 +131,7 @@ def _gradient_descent():
 
     # 可视化
     fig = go.Figure()
-    fig.add_trace(
-        go.Scatter(x=x, y=y, name="f(x) = x²", line=dict(color="lightgray"))
-    )
+    fig.add_trace(go.Scatter(x=x, y=y, name="f(x) = x²", line=dict(color="lightgray")))
     fig.add_trace(
         go.Scatter(
             x=path_x,
@@ -159,7 +155,7 @@ def _gradient_descent():
         xaxis_title="x",
         yaxis_title="f(x)",
     )
-    st.plotly_chart(fig, width='stretch')
+    st.plotly_chart(fig, width="stretch")
 
     st.metric("最终位置", f"x = {path_x[-1]:.4f}")
     st.metric("最终函数值", f"f(x) = {path_y[-1]:.4f}")
@@ -328,4 +324,4 @@ def _graph_laplacian():
             labels={"x": "特征值索引", "y": "特征值"},
             title="拉普拉斯矩阵特征值谱",
         )
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, width="stretch")

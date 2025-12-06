@@ -7,9 +7,9 @@ from .i18n import get_text
 from .training import simulate_training
 
 __all__ = [
-    'detect_chinese_support',
-    'configure_matplotlib_font',
-    'CHINESE_SUPPORTED',
-    'get_text',
-    'simulate_training'
+    "detect_chinese_support",
+    "configure_matplotlib_font",
+    "CHINESE_SUPPORTED",
+    "get_text",
+    "simulate_training",
 ]

@@ -124,6 +124,23 @@ Conv2d(3, 64, kernel_size=7, stride=2, padding=3)
 - ✅ 适用场景决策树（CNN用BatchNorm，Transformer用LayerNorm）
 - 🎯 **实用场景**：选择合适的归一化方法，理解Transformer为什么用LayerNorm
 
+### 🔍 **Vision Transformer (ViT) 分析** ✨ **NEW**
+- ✅ Patch Embedding可视化（如何把图像变成序列）
+- ✅ Self-Attention权重热力图（全局感受野）
+- ✅ Position Encoding原理（为什么Transformer需要位置信息）
+- ✅ ViT vs CNN参数量对比（ViT-Base有86M参数）
+- ✅ 计算复杂度分析（O(N²)的Self-Attention）
+- ✅ 数据效率分析（为什么ViT需要大规模预训练）
+- 🎯 **实用场景**：理解Transformer在视觉领域的应用，学会选择ViT还是CNN
+
+### 🔬 **架构对比实验室** ✨ **NEW**
+- ✅ CNN vs Transformer训练曲线对比（Loss、Accuracy）
+- ✅ 收敛速度分析（达到目标精度需要多少epoch）
+- ✅ 数据效率实验（不同数据量下的性能对比）
+- ✅ 参数量、FLOPs、计算复杂度全方位对比
+- ✅ 智能决策助手（根据数据量和计算资源推荐模型）
+- 🎯 **实用场景**：用数据说话，回答"何时用CNN，何时用Transformer"
+
 ## 安装与使用
 
 ### 环境要求
@@ -266,26 +283,30 @@ scikit-learn   # 机器学习工具
 ### 🚀 Phase 2: 核心差异化功能（v2.0）
 
 #### 架构对比实验室
-- [ ] 📈 **图像分类任务对比**
-  - CNN (ResNet-18) vs ViT-Tiny
-  - 参数量、FLOPs、训练时间、收敛曲线
-  - 数据效率分析（小数据集上谁更好？）
+- [x] 📈 **图像分类任务对比** ✨ **已完成**
+  - ✅ CNN (ResNet-18/50, MobileNet-V2) vs ViT (Tiny/Small/Base)
+  - ✅ 参数量、FLOPs、训练曲线、收敛速度全方位对比
+  - ✅ 数据效率分析（10%到100%数据量对比）
+  - ✅ 智能决策助手（根据数据量和算力推荐模型）
+  - ✅ 6种常用模型的详细信息对比表
 
-- [ ] 🔄 **序列建模任务对比**
+- [ ] 🔄 **序列建模任务对比**（可选扩展）
   - RNN vs LSTM vs GRU
   - 梯度流对比（哪个最稳定？）
   - 计算效率对比（哪个最快？）
 
-- [ ] 🌐 **图任务对比**
+- [ ] 🌐 **图任务对比**（可选扩展）
   - GCN vs GAT vs GraphSAGE
   - 不同图规模下的性能
   - 消息传递复杂度分析
 
 #### 现代架构组件
-- [ ] 🆕 **Vision Transformer (ViT)**
-  - Patch Embedding 的计算细节
-  - Position Embedding 的数值
-  - 与 CNN 的参数量对比
+- [x] 🆕 **Vision Transformer (ViT)** ✨ **已完成**
+  - ✅ Patch Embedding 的计算细节和可视化
+  - ✅ Position Embedding 的数值和原理
+  - ✅ Self-Attention权重热力图
+  - ✅ 与 CNN 的参数量、FLOPs、数据效率对比
+  - ✅ 计算复杂度分析（O(N²)）
 
 - [x] 🆕 **残差网络（ResNet）** ✨ **已完成**
   - ✅ 残差连接的梯度高速公路验证
@@ -297,6 +318,13 @@ scikit-learn   # 机器学习工具
   - ✅ BatchNorm vs LayerNorm vs GroupNorm三维对比
   - ✅ 数值稳定性分析和可视化
   - ✅ Batch Size敏感性实验
+  - ✅ 适用场景决策指南
+
+- [x] 🆕 **Vision Transformer (ViT)** ✨ **已完成**
+  - ✅ Patch Embedding可视化（图像切片过程）
+  - ✅ Self-Attention权重可视化
+  - ✅ Position Encoding原理说明
+  - ✅ ViT vs CNN对比（参数量、计算复杂度、数据需求）
   - ✅ 适用场景决策指南
 
 ---

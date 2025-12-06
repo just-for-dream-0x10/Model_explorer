@@ -18,6 +18,8 @@ from tabs.interactive_lab import interactive_lab_tab
 from tabs.failure_museum import failure_museum_tab
 from tabs.resnet_analysis import resnet_analysis_tab
 from tabs.normalization_comparison import normalization_comparison_tab
+from tabs.vit_analysis import vit_analysis_tab
+from tabs.architecture_comparison import architecture_comparison_tab
 from cnn import cnn_tab
 from gnn import gnn_tab
 from rnn_lstm import rnn_lstm_tab
@@ -29,7 +31,7 @@ st.set_page_config(
     page_title="Neural Network Math Explorer",
     page_icon="🔬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # ==========================================
@@ -42,18 +44,19 @@ st.title("🔬 神经网络架构的计算解剖台")
 # ==========================================
 with st.sidebar:
     st.header(get_text("params_title"))
-    
+
     st.subheader("🎛️ 全局参数")
     learning_rate = st.slider(
-        "学习率" if CHINESE_SUPPORTED else "Learning Rate", 
-        0.0001, 0.1, 0.001, 
-        format="%.4f"
+        "学习率" if CHINESE_SUPPORTED else "Learning Rate",
+        0.0001,
+        0.1,
+        0.001,
+        format="%.4f",
     )
     batch_size = st.slider(
-        "批次大小" if CHINESE_SUPPORTED else "Batch Size", 
-        8, 128, 32
+        "批次大小" if CHINESE_SUPPORTED else "Batch Size", 8, 128, 32
     )
-    
+
     st.markdown("---")
     st.markdown("### 📚 项目信息")
     st.markdown("**开发者**: Just For Dream Lab")
@@ -61,68 +64,125 @@ with st.sidebar:
     st.markdown("[文档](./README.md)")
 
 # ==========================================
-# 标签页
+# 侧边栏导航
 # ==========================================
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
-    "🔢 参数量计算器" if CHINESE_SUPPORTED else "🔢 Params Calculator",
-    get_text("cnn_tab"),
-    get_text("gnn_tab"),
-    get_text("rnn_tab"),
-    get_text("math_tab"),
-    get_text("bp_tab"),
-    "🎮 交互实验室" if CHINESE_SUPPORTED else "🎮 Interactive Lab",
-    "🏛️ 失败案例博物馆" if CHINESE_SUPPORTED else "🏛️ Failure Museum",
-    "🏗️ ResNet残差分析" if CHINESE_SUPPORTED else "🏗️ ResNet Analysis",
-    "🔧 归一化层对比" if CHINESE_SUPPORTED else "🔧 Normalization",
-])
+st.sidebar.title("📚 模块导航" if CHINESE_SUPPORTED else "📚 Module Navigation")
 
-# TAB 1: 参数量计算器 (核心差异化功能)
-with tab1:
+# 分类选择
+category = st.sidebar.radio(
+    "选择分类" if CHINESE_SUPPORTED else "Select Category",
+    [
+        "🔧 基础工具" if CHINESE_SUPPORTED else "🔧 Basic Tools",
+        "🏗️ 经典架构" if CHINESE_SUPPORTED else "🏗️ Classic Architectures", 
+        "🎯 深度优化" if CHINESE_SUPPORTED else "🎯 Deep Optimization",
+        "🚀 现代架构" if CHINESE_SUPPORTED else "🚀 Modern Architectures"
+    ]
+)
+
+# 根据分类显示模块列表
+if CHINESE_SUPPORTED:
+    if category == "🔧 基础工具":
+        module_options = {
+            "🔢 参数量计算器": "params_calculator",
+            "📐 数学推导工具": "math_derivation",
+            "🎮 交互实验室": "interactive_lab"
+        }
+    elif category == "🏗️ 经典架构":
+        module_options = {
+            "🖼️ CNN卷积数学": "cnn",
+            "🕸️ GNN图神经网络": "gnn",
+            "🔁 RNN/LSTM时序网络": "rnn_lstm",
+            "🔬 反向传播原理": "backpropagation"
+        }
+    elif category == "🎯 深度优化":
+        module_options = {
+            "🏛️ 失败案例博物馆": "failure_museum",
+            "🏗️ ResNet残差分析": "resnet_analysis",
+            "🔧 归一化层对比": "normalization"
+        }
+    else:  # 🚀 现代架构
+        module_options = {
+            "🔍 Vision Transformer分析": "vit_analysis",
+            "🔬 架构对比实验室": "architecture_comparison"
+        }
+else:
+    if category == "🔧 Basic Tools":
+        module_options = {
+            "🔢 Params Calculator": "params_calculator",
+            "📐 Math Derivation": "math_derivation",
+            "🎮 Interactive Lab": "interactive_lab"
+        }
+    elif category == "🏗️ Classic Architectures":
+        module_options = {
+            "🖼️ CNN": "cnn",
+            "🕸️ GNN": "gnn",
+            "🔁 RNN/LSTM": "rnn_lstm",
+            "🔬 Backpropagation": "backpropagation"
+        }
+    elif category == "🎯 Deep Optimization":
+        module_options = {
+            "🏛️ Failure Museum": "failure_museum",
+            "🏗️ ResNet Analysis": "resnet_analysis",
+            "🔧 Normalization": "normalization"
+        }
+    else:  # 🚀 Modern Architectures
+        module_options = {
+            "🔍 ViT Analysis": "vit_analysis",
+            "🔬 Architecture Lab": "architecture_comparison"
+        }
+
+# 模块选择
+selected_module_name = st.sidebar.selectbox(
+    "选择模块" if CHINESE_SUPPORTED else "Select Module",
+    list(module_options.keys())
+)
+
+selected_module = module_options[selected_module_name]
+
+# 显示分隔线
+st.sidebar.markdown("---")
+
+# 显示当前模块信息
+st.sidebar.info(f"📍 当前模块：{selected_module_name}" if CHINESE_SUPPORTED else f"📍 Current: {selected_module_name}")
+
+# ==========================================
+# 根据选择的模块显示内容
+# ==========================================
+if selected_module == "params_calculator":
     params_calculator_tab()
-
-# TAB 2: CNN卷积数学
-with tab2:
-    cnn_tab(CHINESE_SUPPORTED)
-
-# TAB 3: GNN图神经网络
-with tab3:
-    gnn_tab(CHINESE_SUPPORTED)
-
-# TAB 4: RNN/LSTM时序网络
-with tab4:
-    rnn_lstm_tab(CHINESE_SUPPORTED)
-
-# TAB 5: 数学推导工具
-with tab5:
+elif selected_module == "math_derivation":
     math_derivation_tab()
-
-# TAB 6: 反向传播原理
-with tab6:
-    backpropagation_tab(CHINESE_SUPPORTED)
-
-# TAB 7: 交互实验室
-with tab7:
+elif selected_module == "interactive_lab":
     interactive_lab_tab(CHINESE_SUPPORTED)
-
-# TAB 8: 失败案例博物馆
-with tab8:
+elif selected_module == "cnn":
+    cnn_tab(CHINESE_SUPPORTED)
+elif selected_module == "gnn":
+    gnn_tab(CHINESE_SUPPORTED)
+elif selected_module == "rnn_lstm":
+    rnn_lstm_tab(CHINESE_SUPPORTED)
+elif selected_module == "backpropagation":
+    backpropagation_tab(CHINESE_SUPPORTED)
+elif selected_module == "failure_museum":
     failure_museum_tab(CHINESE_SUPPORTED)
-
-# TAB 9: ResNet残差分析
-with tab9:
+elif selected_module == "resnet_analysis":
     resnet_analysis_tab(CHINESE_SUPPORTED)
-
-# TAB 10: 归一化层对比
-with tab10:
+elif selected_module == "normalization":
     normalization_comparison_tab(CHINESE_SUPPORTED)
+elif selected_module == "vit_analysis":
+    vit_analysis_tab(CHINESE_SUPPORTED)
+elif selected_module == "architecture_comparison":
+    architecture_comparison_tab(CHINESE_SUPPORTED)
 
 # ==========================================
 # 页脚
 # ==========================================
 st.markdown("---")
-st.markdown("""
+st.markdown(
+    """
 <div style='text-align: center; color: gray; padding: 20px;'>
     <p>Neural Network Math Explorer v1.5.0</p>
     <p>专注于网络层计算细节 | Just For Dream Lab</p>
 </div>
-""", unsafe_allow_html=True)
+""",
+    unsafe_allow_html=True,
+)

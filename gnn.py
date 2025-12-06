@@ -15,7 +15,7 @@ from simple_latex import display_latex
 
 def gnn_tab(CHINESE_SUPPORTED):
     """GNN标签页内容"""
-    
+
     # 定义默认参数
     num_nodes = 8
     num_layers = 2
