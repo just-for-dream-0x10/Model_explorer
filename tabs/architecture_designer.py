@@ -11,6 +11,7 @@ Architecture Designer Workbench
 - 内存与稳定性分析
 - 配置导入/导出
 - 更丰富的可视化
+- 模块化模板系统（12+ 种预设架构）
 """
 
 import streamlit as st
@@ -30,6 +31,7 @@ from utils.memory_analyzer import (
     get_tensor_memory
 )
 from utils.stability_analyzer import check_activation_stability
+from templates.template_loader import TemplateLoader
 
 
 class LayerConfig:
@@ -950,65 +952,156 @@ def architecture_designer_tab(chinese_supported=True):
     # 底部提示
     st.markdown("---")
     
-    # 显示快捷模板
-    with st.expander("🚀 快捷模板", expanded=False):
-        st.markdown("点击加载预设的网络模板")
+    # 显示快捷模板（使用新的模板系统）
+    with st.expander("🚀 神经网络模板库", expanded=False):
+        st.markdown("### 📚 预设网络架构模板")
+        st.markdown("从12+种经典架构中选择，一键加载完整网络配置")
         
-        col1, col2, col3 = st.columns(3)
+        # 初始化模板加载器
+        try:
+            loader = TemplateLoader()
+            templates = loader.get_all_templates()
+            
+            if not templates:
+                st.warning("⚠️ 未找到模板文件，请确保 templates/configs/ 目录存在")
+            else:
+                # 按分类显示模板
+                categories = loader.get_categories()
+                
+                # 添加筛选选项
+                col_filter1, col_filter2, col_filter3 = st.columns(3)
+                with col_filter1:
+                    selected_category = st.selectbox(
+                        "📂 按分类筛选",
+                        ["全部"] + categories,
+                        key="template_category_filter"
+                    )
+                with col_filter2:
+                    selected_difficulty = st.selectbox(
+                        "📊 按难度筛选",
+                        ["全部", "beginner", "intermediate", "advanced"],
+                        format_func=lambda x: {"全部": "全部", "beginner": "入门", "intermediate": "中级", "advanced": "高级"}.get(x, x),
+                        key="template_difficulty_filter"
+                    )
+                with col_filter3:
+                    search_query = st.text_input("🔍 搜索模板", placeholder="输入关键词...", key="template_search")
+                
+                # 应用筛选
+                filtered_templates = templates
+                if selected_category != "全部":
+                    filtered_templates = [t for t in filtered_templates if t.category == selected_category]
+                if selected_difficulty != "全部":
+                    filtered_templates = [t for t in filtered_templates if t.difficulty == selected_difficulty]
+                if search_query:
+                    filtered_templates = loader.search_templates(search_query)
+                
+                if not filtered_templates:
+                    st.info("没有找到匹配的模板")
+                else:
+                    st.markdown(f"**找到 {len(filtered_templates)} 个模板**")
+                    
+                    # 按分类组织显示
+                    for category in categories:
+                        cat_templates = [t for t in filtered_templates if t.category == category]
+                        if not cat_templates:
+                            continue
+                        
+                        st.markdown(f"#### 📁 {category}")
+                        
+                        # 每行显示3个模板
+                        for i in range(0, len(cat_templates), 3):
+                            cols = st.columns(3)
+                            for j, col in enumerate(cols):
+                                if i + j < len(cat_templates):
+                                    template = cat_templates[i + j]
+                                    with col:
+                                        # 难度标签
+                                        difficulty_colors = {
+                                            "beginner": "🟢",
+                                            "intermediate": "🟡",
+                                            "advanced": "🔴"
+                                        }
+                                        difficulty_emoji = difficulty_colors.get(template.difficulty, "⚪")
+                                        
+                                        # 创建按钮
+                                        button_label = f"{template.icon} {template.name}\n{difficulty_emoji}"
+                                        if st.button(
+                                            button_label,
+                                            key=f"template_{template.id}",
+                                            use_container_width=True,
+                                            help=f"{template.description}\n层数: {len(template.layers)}\n输入: {template.input_shape}"
+                                        ):
+                                            # 加载模板
+                                            st.session_state.input_shape = tuple(template.input_shape)
+                                            st.session_state.layers = template.to_layer_configs()
+                                            st.success(f"✅ 已加载 {template.name}")
+                                            st.info(f"📋 {template.description}")
+                                            st.rerun()
+                                        
+                                        # 显示简要信息
+                                        st.caption(f"{len(template.layers)} 层 | {template.input_shape}")
+                        
+                        st.markdown("---")
         
-        with col1:
-            if st.button("📱 简单CNN (MNIST)", use_container_width=True):
-                st.session_state.input_shape = (1, 1, 28, 28)
-                st.session_state.layers = [
-                    LayerConfig("Conv2d", "conv1", {"in_channels": 1, "out_channels": 32, "kernel_size": 3, "stride": 1, "padding": 1}),
-                    LayerConfig("ReLU", "relu1", {}),
-                    LayerConfig("MaxPool2d", "pool1", {"kernel_size": 2, "stride": 2}),
-                    LayerConfig("Conv2d", "conv2", {"in_channels": 32, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}),
-                    LayerConfig("ReLU", "relu2", {}),
-                    LayerConfig("MaxPool2d", "pool2", {"kernel_size": 2, "stride": 2}),
-                    LayerConfig("Flatten", "flatten", {}),
-                    LayerConfig("Linear", "fc1", {"in_features": 3136, "out_features": 128}),
-                    LayerConfig("ReLU", "relu3", {}),
-                    LayerConfig("Linear", "fc2", {"in_features": 128, "out_features": 10})
-                ]
-                st.success("✅ 已加载 MNIST CNN 模板")
-                st.rerun()
-        
-        with col2:
-            if st.button("🖼️ 中等CNN (CIFAR)", use_container_width=True):
-                st.session_state.input_shape = (1, 3, 32, 32)
-                st.session_state.layers = [
-                    LayerConfig("Conv2d", "conv1", {"in_channels": 3, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}),
-                    LayerConfig("BatchNorm2d", "bn1", {"num_features": 64}),
-                    LayerConfig("ReLU", "relu1", {}),
-                    LayerConfig("Conv2d", "conv2", {"in_channels": 64, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}),
-                    LayerConfig("BatchNorm2d", "bn2", {"num_features": 128}),
-                    LayerConfig("ReLU", "relu2", {}),
-                    LayerConfig("MaxPool2d", "pool1", {"kernel_size": 2, "stride": 2}),
-                    LayerConfig("Flatten", "flatten", {}),
-                    LayerConfig("Linear", "fc1", {"in_features": 32768, "out_features": 256}),  # 修正：128*16*16=32768
-                    LayerConfig("ReLU", "relu3", {}),
-                    LayerConfig("Dropout", "dropout", {"p": 0.5}),
-                    LayerConfig("Linear", "fc2", {"in_features": 256, "out_features": 10})
-                ]
-                st.success("✅ 已加载 CIFAR CNN 模板")
-                st.rerun()
-        
-        with col3:
-            if st.button("🧠 简单MLP", use_container_width=True):
-                # MLP模板：用于向量输入（如MNIST展平后）
-                st.session_state.input_shape = (1, 784)
-                st.session_state.layers = [
-                    LayerConfig("Linear", "fc1", {"in_features": 784, "out_features": 512}),
-                    LayerConfig("ReLU", "relu1", {}),
-                    LayerConfig("Dropout", "dropout1", {"p": 0.2}),
-                    LayerConfig("Linear", "fc2", {"in_features": 512, "out_features": 256}),
-                    LayerConfig("ReLU", "relu2", {}),
-                    LayerConfig("Dropout", "dropout2", {"p": 0.2}),
-                    LayerConfig("Linear", "fc3", {"in_features": 256, "out_features": 10})
-                ]
-                st.success("✅ 已加载 MLP 模板！输入形状已设置为 (1, 784)")
-                st.rerun()
+        except Exception as e:
+            st.error(f"加载模板失败: {e}")
+            st.info("💡 使用默认模板作为备选...")
+            
+            # 备选方案：显示旧的硬编码模板
+            col1, col2, col3 = st.columns(3)
+            
+            with col1:
+                if st.button("📱 简单CNN (MNIST)", use_container_width=True):
+                    st.session_state.input_shape = (1, 1, 28, 28)
+                    st.session_state.layers = [
+                        LayerConfig("Conv2d", "conv1", {"in_channels": 1, "out_channels": 32, "kernel_size": 3, "stride": 1, "padding": 1}),
+                        LayerConfig("ReLU", "relu1", {}),
+                        LayerConfig("MaxPool2d", "pool1", {"kernel_size": 2, "stride": 2}),
+                        LayerConfig("Conv2d", "conv2", {"in_channels": 32, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}),
+                        LayerConfig("ReLU", "relu2", {}),
+                        LayerConfig("MaxPool2d", "pool2", {"kernel_size": 2, "stride": 2}),
+                        LayerConfig("Flatten", "flatten", {}),
+                        LayerConfig("Linear", "fc1", {"in_features": 3136, "out_features": 128}),
+                        LayerConfig("ReLU", "relu3", {}),
+                        LayerConfig("Linear", "fc2", {"in_features": 128, "out_features": 10})
+                    ]
+                    st.success("✅ 已加载 MNIST CNN 模板")
+                    st.rerun()
+            
+            with col2:
+                if st.button("🖼️ 中等CNN (CIFAR)", use_container_width=True):
+                    st.session_state.input_shape = (1, 3, 32, 32)
+                    st.session_state.layers = [
+                        LayerConfig("Conv2d", "conv1", {"in_channels": 3, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}),
+                        LayerConfig("BatchNorm2d", "bn1", {"num_features": 64}),
+                        LayerConfig("ReLU", "relu1", {}),
+                        LayerConfig("Conv2d", "conv2", {"in_channels": 64, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}),
+                        LayerConfig("BatchNorm2d", "bn2", {"num_features": 128}),
+                        LayerConfig("ReLU", "relu2", {}),
+                        LayerConfig("MaxPool2d", "pool1", {"kernel_size": 2, "stride": 2}),
+                        LayerConfig("Flatten", "flatten", {}),
+                        LayerConfig("Linear", "fc1", {"in_features": 32768, "out_features": 256}),
+                        LayerConfig("ReLU", "relu3", {}),
+                        LayerConfig("Dropout", "dropout", {"p": 0.5}),
+                        LayerConfig("Linear", "fc2", {"in_features": 256, "out_features": 10})
+                    ]
+                    st.success("✅ 已加载 CIFAR CNN 模板")
+                    st.rerun()
+            
+            with col3:
+                if st.button("🧠 简单MLP", use_container_width=True):
+                    st.session_state.input_shape = (1, 784)
+                    st.session_state.layers = [
+                        LayerConfig("Linear", "fc1", {"in_features": 784, "out_features": 512}),
+                        LayerConfig("ReLU", "relu1", {}),
+                        LayerConfig("Dropout", "dropout1", {"p": 0.2}),
+                        LayerConfig("Linear", "fc2", {"in_features": 512, "out_features": 256}),
+                        LayerConfig("ReLU", "relu2", {}),
+                        LayerConfig("Dropout", "dropout2", {"p": 0.2}),
+                        LayerConfig("Linear", "fc3", {"in_features": 256, "out_features": 10})
+                    ]
+                    st.success("✅ 已加载 MLP 模板")
+                    st.rerun()
     
     st.markdown("""
     ### 💡 使用提示

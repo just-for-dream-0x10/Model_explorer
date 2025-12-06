@@ -1,0 +1,118 @@
+{
+  "id": "alexnet_like",
+  "name": "AlexNet-like",
+  "description": "类AlexNet架构，ImageNet竞赛冠军网络的简化版",
+  "category": "CNN",
+  "icon": "🏆",
+  "difficulty": "intermediate",
+  "tags": ["CNN", "AlexNet", "ImageNet", "深度学习里程碑"],
+  "use_cases": ["ImageNet分类", "大规模图像识别", "特征提取"],
+  "input_shape": [1, 3, 224, 224],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 3, "out_channels": 64, "kernel_size": 11, "stride": 4, "padding": 2}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 3, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2",
+      "params": {"in_channels": 64, "out_channels": 192, "kernel_size": 5, "stride": 1, "padding": 2}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 3, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv3",
+      "params": {"in_channels": 192, "out_channels": 384, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv4",
+      "params": {"in_channels": 384, "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu4",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv5",
+      "params": {"in_channels": 256, "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu5",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool3",
+      "params": {"kernel_size": 3, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 9216, "out_features": 4096}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu6",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout1",
+      "params": {"p": 0.5}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 4096, "out_features": 4096}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu7",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout2",
+      "params": {"p": 0.5}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc3",
+      "params": {"in_features": 4096, "out_features": 1000}
+    }
+  ]
+}

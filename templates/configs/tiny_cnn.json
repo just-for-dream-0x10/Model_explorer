@@ -1,0 +1,48 @@
+{
+  "id": "tiny_cnn",
+  "name": "微型CNN",
+  "description": "超轻量级CNN，适合快速实验和边缘设备",
+  "category": "CNN",
+  "icon": "🐣",
+  "difficulty": "beginner",
+  "tags": ["CNN", "轻量级", "快速训练", "入门"],
+  "use_cases": ["快速原型", "边缘设备", "概念验证"],
+  "input_shape": [1, 1, 28, 28],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 1, "out_channels": 16, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 3136, "out_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 64, "out_features": 10}
+    }
+  ]
+}

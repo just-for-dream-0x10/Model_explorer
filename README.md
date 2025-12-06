@@ -1,3 +1,45 @@
+### 🏗️ 架构设计工作台（Architecture Designer）
+
+**全新模板系统**：22+ 种预设神经网络架构，一键加载即用
+
+#### 📚 模板库（22个模板，5大分类）
+
+**🖼️ CNN 类 (11个)** - 卷积神经网络
+- 📱 MNIST CNN - 入门级手写数字识别 🟢
+- 🖼️ CIFAR-10 CNN - 彩色图像分类 🟡
+- 📜 LeNet-5 - 经典CNN架构 🟢
+- 🏆 AlexNet-like - ImageNet冠军网络 🟡
+- 🏛️ VGG-like - 深度小卷积核网络 🟡
+- 🐣 微型CNN - 超轻量级网络 🟢
+- 📐 宽型CNN - 高容量网络 🟡
+- 🔗 残差网络块 - ResNet风格 🔴
+- 📱 MobileNet - 移动端优化 🟡
+- 🎯 U-Net编码器 - 图像分割 🔴
+- ⚡ EfficientNet - 高效架构 🔴
+
+**🤖 Transformer 类 (5个)** - 注意力机制
+- 🤖 Transformer编码器 - 自注意力机制 🔴
+- 👁️ Vision Transformer (ViT) - 视觉Transformer 🔴
+- 📖 BERT风格 - 双向编码器 🔴
+- ✍️ GPT风格 - 自回归解码器 🔴
+- 🔄 Seq2Seq - 编码器-解码器 🔴
+
+**🧠 MLP 类 (2个)** - 全连接网络
+- 🧠 简单MLP - 基础全连接网络 🟢
+- 🧬 深度MLP - 深层全连接网络 🟡
+
+**🔄 Autoencoder 类 (2个)** - 自编码器
+- 🔄 自编码器 - 特征学习和降维 🟡
+- 🔁 卷积自编码器 - 图像重建 🔴
+
+**🎨 GAN 类 (2个)** - 生成对抗网络
+- 🎨 GAN生成器 - 图像生成 🔴
+- 🔍 GAN判别器 - 真假鉴别 🔴
+
+**难度标记**: 🟢 入门 | 🟡 中级 | 🔴 高级
+
+#### 🎯 核心功能
+
 # Neural Network Math Explorer 🔬
 
 **神经网络架构的计算解剖台**

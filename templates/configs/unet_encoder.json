@@ -1,0 +1,83 @@
+{
+  "id": "unet_encoder",
+  "name": "U-Net编码器",
+  "description": "U-Net的编码器部分，用于图像分割的特征提取",
+  "category": "CNN",
+  "icon": "🎯",
+  "difficulty": "advanced",
+  "tags": ["U-Net", "图像分割", "医学影像", "编码器"],
+  "use_cases": ["图像分割", "医学影像分析", "目标检测", "语义分割"],
+  "input_shape": [1, 1, 256, 256],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1_1",
+      "params": {"in_channels": 1, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1_1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1_2",
+      "params": {"in_channels": 64, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1_2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2_1",
+      "params": {"in_channels": 64, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2_1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2_2",
+      "params": {"in_channels": 128, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2_2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv3_1",
+      "params": {"in_channels": 128, "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3_1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv3_2",
+      "params": {"in_channels": 256, "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3_2",
+      "params": {}
+    }
+  ]
+}

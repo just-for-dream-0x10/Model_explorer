@@ -97,7 +97,7 @@ def _cnn_feature_visualization(CHINESE_SUPPORTED):
                 st.markdown("**输入图像**")
                 fig = px.imshow(input_image, color_continuous_scale="gray")
                 fig.update_layout(height=300)
-                st.plotly_chart(fig, width="stretch")
+                st.plotly_chart(fig, width="stretch", key="cnn_input_image")
 
             except Exception as e:
                 st.error(f"图像加载失败: {str(e)}")
@@ -139,7 +139,7 @@ def _cnn_feature_visualization(CHINESE_SUPPORTED):
         st.markdown("**输入图像**")
         fig = px.imshow(input_image, color_continuous_scale="gray")
         fig.update_layout(height=300)
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, width="stretch", key="cnn_example_image")
 
     if input_image is not None:
         # 卷积核选择
@@ -227,13 +227,13 @@ def _cnn_feature_visualization(CHINESE_SUPPORTED):
             st.markdown("**输入图像**")
             fig = px.imshow(input_image, color_continuous_scale="gray")
             fig.update_layout(height=300)
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, width="stretch", key="cnn_feature_input")
 
         with col2:
             st.markdown("**输出特征图**")
             fig = px.imshow(feature_map, color_continuous_scale="viridis")
             fig.update_layout(height=300)
-            st.plotly_chart(fig, width="stretch")
+            st.plotly_chart(fig, width="stretch", key="cnn_feature_output")
 
         # 特征图统计
         st.markdown("**特征图统计**")
@@ -372,13 +372,13 @@ def _gnn_node_classification(CHINESE_SUPPORTED):
         showlegend=False,
     )
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", key="gnn_graph")
 
     # 邻接矩阵
     st.markdown("#### 📐 邻接矩阵")
     fig_adj = px.imshow(adj_matrix, color_continuous_scale="Blues", aspect="auto")
     fig_adj.update_layout(height=400, title="邻接矩阵")
-    st.plotly_chart(fig_adj, width="stretch")
+    st.plotly_chart(fig_adj, width="stretch", key="gnn_adj_matrix")
 
     # GNN消息传递
     st.markdown("#### 🔄 GNN消息传递")
@@ -486,7 +486,7 @@ def _activation_comparison(CHINESE_SUPPORTED):
         fig.update_layout(
             xaxis_title="x", yaxis_title="f(x)", height=400, hovermode="x unified"
         )
-        st.plotly_chart(fig, width="stretch")
+        st.plotly_chart(fig, width="stretch", key="activation_functions")
 
     # 导数对比
     st.markdown("---")
@@ -506,7 +506,7 @@ def _activation_comparison(CHINESE_SUPPORTED):
     fig.update_layout(
         xaxis_title="x", yaxis_title="f'(x)", height=400, hovermode="x unified"
     )
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", key="activation_derivatives")
 
     # 梯度消失分析
     st.markdown("---")
@@ -567,7 +567,7 @@ def _activation_comparison(CHINESE_SUPPORTED):
     fig.update_yaxes(title_text="梯度", row=1, col=2, type="log")
 
     fig.update_layout(height=400, showlegend=False)
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", key="gradient_propagation")
 
     final_grad = abs(gradients[-1])
 
@@ -795,7 +795,7 @@ def _optimizer_trajectory(CHINESE_SUPPORTED):
         height=600,
     )
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", key="optimization_trajectory")
 
 
 def _loss_landscape_3d(CHINESE_SUPPORTED):
@@ -864,7 +864,7 @@ def _loss_landscape_3d(CHINESE_SUPPORTED):
         height=600,
     )
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", key="loss_3d_surface")
 
     # 等高线图
     st.markdown("#### 📏 等高线图")
@@ -882,7 +882,7 @@ def _loss_landscape_3d(CHINESE_SUPPORTED):
         height=500,
     )
 
-    st.plotly_chart(fig2, width="stretch")
+    st.plotly_chart(fig2, width="stretch", key="loss_contour")
 
 
 def _batch_parameter_comparison(CHINESE_SUPPORTED):
@@ -988,7 +988,7 @@ def _batch_parameter_comparison(CHINESE_SUPPORTED):
         hovermode="x unified",
     )
 
-    st.plotly_chart(fig, width="stretch")
+    st.plotly_chart(fig, width="stretch", key="batch_comparison")
 
     # 最终性能对比
     st.markdown("#### 🏆 最终性能对比")
@@ -1022,7 +1022,7 @@ def _batch_parameter_comparison(CHINESE_SUPPORTED):
             height=400,
         )
 
-        st.plotly_chart(fig2, width="stretch")
+        st.plotly_chart(fig2, width="stretch", key="final_performance")
 
     with col2:
         st.markdown("**最佳参数**")

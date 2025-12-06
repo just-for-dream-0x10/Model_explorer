@@ -1,0 +1,83 @@
+{
+  "id": "efficientnet_like",
+  "name": "EfficientNet风格",
+  "description": "高效的CNN架构，平衡精度和效率",
+  "category": "CNN",
+  "icon": "⚡",
+  "difficulty": "advanced",
+  "tags": ["EfficientNet", "高效", "复合缩放", "SOTA"],
+  "use_cases": ["高精度图像分类", "效率优先", "模型压缩"],
+  "input_shape": [1, 3, 224, 224],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "stem_conv",
+      "params": {"in_channels": 3, "out_channels": 32, "kernel_size": 3, "stride": 2, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "stem_bn",
+      "params": {"num_features": 32}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "stem_act",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "mb_conv1_expand",
+      "params": {"in_channels": 32, "out_channels": 192, "kernel_size": 1, "stride": 1, "padding": 0}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "mb_conv1_bn",
+      "params": {"num_features": 192}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "mb_conv1_act",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "mb_conv1_dw",
+      "params": {"in_channels": 192, "out_channels": 192, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "mb_conv1_dw_bn",
+      "params": {"num_features": 192}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "mb_conv1_dw_act",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "mb_conv1_project",
+      "params": {"in_channels": 192, "out_channels": 32, "kernel_size": 1, "stride": 1, "padding": 0}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "mb_conv1_project_bn",
+      "params": {"num_features": 32}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool",
+      "params": {"kernel_size": 7, "stride": 7}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "head",
+      "params": {"in_features": 12800, "out_features": 1000}
+    }
+  ]
+}

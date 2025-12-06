@@ -1,0 +1,68 @@
+{
+  "id": "residual_block",
+  "name": "残差网络块",
+  "description": "包含残差连接的基础网络块，受ResNet启发",
+  "category": "CNN",
+  "icon": "🔗",
+  "difficulty": "advanced",
+  "tags": ["ResNet", "残差连接", "深度网络", "跳跃连接"],
+  "use_cases": ["深度网络训练", "梯度流优化", "图像分类"],
+  "input_shape": [1, 3, 32, 32],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 3, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn1",
+      "params": {"num_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2",
+      "params": {"in_channels": 64, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn2",
+      "params": {"num_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv3",
+      "params": {"in_channels": 64, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn3",
+      "params": {"num_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc",
+      "params": {"in_features": 65536, "out_features": 10}
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "id": "deep_mlp",
+  "name": "深度MLP",
+  "description": "更深的多层感知机，适用于复杂的非图像任务",
+  "category": "MLP",
+  "icon": "🧬",
+  "difficulty": "intermediate",
+  "tags": ["MLP", "深度网络", "全连接", "表格数据"],
+  "use_cases": ["复杂表格数据", "特征工程", "回归任务"],
+  "input_shape": [1, 512],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 512, "out_features": 1024}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout1",
+      "params": {"p": 0.3}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 1024, "out_features": 512}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout2",
+      "params": {"p": 0.3}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc3",
+      "params": {"in_features": 512, "out_features": 256}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout3",
+      "params": {"p": 0.3}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc4",
+      "params": {"in_features": 256, "out_features": 128}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu4",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout4",
+      "params": {"p": 0.2}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc5",
+      "params": {"in_features": 128, "out_features": 10}
+    }
+  ]
+}

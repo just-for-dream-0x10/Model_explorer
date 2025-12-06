@@ -6,11 +6,14 @@ import streamlit as st
 import numpy as np
 import torch
 import torch.nn.functional as F
-import plotly.express as px
-import plotly.graph_objects as go
 import pandas as pd
 import networkx as nx
+import plotly.graph_objects as go
+import plotly.express as px
 from simple_latex import display_latex
+
+from utils.visualization import ChartBuilder
+from utils.exceptions import ComputationError
 
 
 def gnn_tab(CHINESE_SUPPORTED):
@@ -21,6 +24,9 @@ def gnn_tab(CHINESE_SUPPORTED):
     num_layers = 2
 
     st.header("🕸️ GNN图神经网络数学原理")
+    
+    # 初始化图表工具
+    chart_builder = ChartBuilder()
 
     display_latex("H^{(l+1)} = \\sigma(\\tilde{A} H^{(l)} W^{(l)})")
 
@@ -160,13 +166,19 @@ def gnn_tab(CHINESE_SUPPORTED):
         try:
             D_tilde_inv_sqrt = np.linalg.inv(np.sqrt(D_tilde))
             A_hat = D_tilde_inv_sqrt @ A_tilde @ D_tilde_inv_sqrt
-        except np.linalg.LinAlgError:
+        except np.linalg.LinAlgError as e:
             # 处理奇异矩阵情况
-            D_tilde_sqrt = np.sqrt(D_tilde)
-            D_tilde_inv_sqrt = np.zeros_like(D_tilde_sqrt)
-            non_zero_mask = D_tilde_sqrt > 1e-10
-            D_tilde_inv_sqrt[non_zero_mask] = 1.0 / D_tilde_sqrt[non_zero_mask]
-            A_hat = D_tilde_inv_sqrt @ A_tilde @ D_tilde_inv_sqrt
+            try:
+                D_tilde_sqrt = np.sqrt(D_tilde)
+                D_tilde_inv_sqrt = np.zeros_like(D_tilde_sqrt)
+                non_zero_mask = D_tilde_sqrt > 1e-10
+                D_tilde_inv_sqrt[non_zero_mask] = 1.0 / D_tilde_sqrt[non_zero_mask]
+                A_hat = D_tilde_inv_sqrt @ A_tilde @ D_tilde_inv_sqrt
+            except Exception as calc_error:
+                raise ComputationError(
+                    operation="图拉普拉斯矩阵归一化",
+                    error_details=f"奇异矩阵处理失败: {str(calc_error)}"
+                ) from e
 
         st.markdown(
             "#### 步骤3: 对称归一化 $ \\tilde{A} = \\tilde{D}^{-1/2} \\tilde{A} \\tilde{D}^{-1/2} $"

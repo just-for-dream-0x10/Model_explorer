@@ -1,0 +1,68 @@
+{
+  "id": "autoencoder",
+  "name": "自编码器 (AE)",
+  "description": "基础自编码器，用于无监督特征学习和降维",
+  "category": "Autoencoder",
+  "icon": "🔄",
+  "difficulty": "intermediate",
+  "tags": ["自编码器", "无监督学习", "降维", "特征学习"],
+  "use_cases": ["特征提取", "降维", "异常检测", "去噪"],
+  "input_shape": [1, 784],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "encoder1",
+      "params": {"in_features": 784, "out_features": 512}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "encoder2",
+      "params": {"in_features": 512, "out_features": 256}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "bottleneck",
+      "params": {"in_features": 256, "out_features": 32}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "decoder1",
+      "params": {"in_features": 32, "out_features": 256}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu4",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "decoder2",
+      "params": {"in_features": 256, "out_features": 512}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu5",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "output",
+      "params": {"in_features": 512, "out_features": 784}
+    }
+  ]
+}

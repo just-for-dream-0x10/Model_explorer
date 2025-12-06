@@ -1,0 +1,68 @@
+{
+  "id": "simple_transformer_encoder",
+  "name": "Transformer编码器",
+  "description": "简化的Transformer编码器架构，展示自注意力机制的基本结构",
+  "category": "Transformer",
+  "icon": "🤖",
+  "difficulty": "advanced",
+  "tags": ["Transformer", "注意力机制", "编码器", "NLP"],
+  "use_cases": ["文本分类", "序列编码", "特征提取", "BERT风格模型"],
+  "input_shape": [1, 512],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "embedding",
+      "params": {"in_features": 512, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "query_proj",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "key_proj",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "value_proj",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "attention_out",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout1",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "ffn1",
+      "params": {"in_features": 768, "out_features": 3072}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_ffn",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "ffn2",
+      "params": {"in_features": 3072, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout2",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "classifier",
+      "params": {"in_features": 768, "out_features": 10}
+    }
+  ]
+}

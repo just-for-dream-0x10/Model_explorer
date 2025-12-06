@@ -1,0 +1,73 @@
+{
+  "id": "mobilenet_like",
+  "name": "MobileNet风格网络",
+  "description": "轻量级CNN，使用深度可分离卷积，适合移动设备",
+  "category": "CNN",
+  "icon": "📱",
+  "difficulty": "intermediate",
+  "tags": ["MobileNet", "轻量级", "移动端", "深度可分离卷积"],
+  "use_cases": ["移动端部署", "边缘计算", "实时推理", "资源受限环境"],
+  "input_shape": [1, 3, 224, 224],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv_stem",
+      "params": {"in_channels": 3, "out_channels": 32, "kernel_size": 3, "stride": 2, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn_stem",
+      "params": {"num_features": 32}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_stem",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "dw_conv1",
+      "params": {"in_channels": 32, "out_channels": 32, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn_dw1",
+      "params": {"num_features": 32}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_dw1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "pw_conv1",
+      "params": {"in_channels": 32, "out_channels": 64, "kernel_size": 1, "stride": 1, "padding": 0}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn_pw1",
+      "params": {"num_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_pw1",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc",
+      "params": {"in_features": 200704, "out_features": 1000}
+    }
+  ]
+}

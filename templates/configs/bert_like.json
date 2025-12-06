@@ -1,0 +1,78 @@
+{
+  "id": "bert_like",
+  "name": "BERT风格模型",
+  "description": "类BERT的双向Transformer编码器，用于语言理解任务",
+  "category": "Transformer",
+  "icon": "📖",
+  "difficulty": "advanced",
+  "tags": ["BERT", "NLP", "预训练", "双向编码器"],
+  "use_cases": ["文本分类", "命名实体识别", "问答系统", "语义理解"],
+  "input_shape": [1, 512],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "token_embedding",
+      "params": {"in_features": 512, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "embedding_dropout",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "encoder_q",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "encoder_k",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "encoder_v",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "attn_output",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "attn_dropout",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "intermediate",
+      "params": {"in_features": 768, "out_features": 3072}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "intermediate_act",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "output",
+      "params": {"in_features": 3072, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "output_dropout",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "pooler",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "classifier",
+      "params": {"in_features": 768, "out_features": 2}
+    }
+  ]
+}

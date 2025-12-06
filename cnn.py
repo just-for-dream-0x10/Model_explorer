@@ -4,12 +4,11 @@ CNN卷积神经网络数学原理模块
 
 import streamlit as st
 import numpy as np
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import pandas as pd
 from scipy import signal
 from simple_latex import display_latex
+
+from utils.visualization import ChartBuilder, MathVisualization
 
 
 # 辅助函数：生成不同类型的图案
@@ -65,6 +64,10 @@ def cnn_tab(CHINESE_SUPPORTED):
     """CNN标签页内容"""
 
     st.header("🔄 CNN卷积操作数学原理")
+    
+    # 初始化图表工具
+    chart_builder = ChartBuilder()
+    math_viz = MathVisualization()
 
     # ==========================================
     # 第一部分：核心概念与直观理解
@@ -132,20 +135,22 @@ def cnn_tab(CHINESE_SUPPORTED):
                 demo_input_image = np.random.randn(64, 64)  # 暂时用随机数据代替
 
         # 显示输入和卷积核
-        fig = px.imshow(
-            demo_input_image, color_continuous_scale="gray", title="输入图像"
+        fig_input = chart_builder.create_heatmap(
+            demo_input_image, 
+            title="输入图像",
+            colorscale="gray",
+            height=250
         )
-        fig.update_layout(height=250)
-        st.plotly_chart(fig, width="stretch")
+        chart_builder.display_chart(fig_input)
 
         st.markdown(f"**{selected_kernel_type}卷积核**")
-        fig = px.imshow(
+        fig_kernel = chart_builder.create_heatmap(
             demo_kernel,
-            color_continuous_scale="RdBu",
             title=f"{selected_kernel_type}检测器",
+            colorscale="RdBu",
+            height=200
         )
-        fig.update_layout(height=200)
-        st.plotly_chart(fig, width="stretch")
+        chart_builder.display_chart(fig_kernel)
 
     with col2:
         # 参数控制
@@ -162,9 +167,13 @@ def cnn_tab(CHINESE_SUPPORTED):
 
         # 显示卷积结果
         st.markdown("**卷积结果**")
-        fig = px.imshow(conv_result, color_continuous_scale="viridis", title="卷积输出")
-        fig.update_layout(height=250)
-        st.plotly_chart(fig, width="stretch")
+        fig_result = chart_builder.create_heatmap(
+            conv_result, 
+            title="卷积输出",
+            colorscale="viridis",
+            height=250
+        )
+        chart_builder.display_chart(fig_result)
 
         # 显示具体计算示例
         if demo_input_image.shape[0] >= 3 and demo_input_image.shape[1] >= 3:
@@ -222,25 +231,21 @@ def cnn_tab(CHINESE_SUPPORTED):
         kernel_sizes = [3, 5, 7, 9]
         output_sizes = [(input_demo - ks) // 1 + 1 for ks in kernel_sizes]
 
-        fig = go.Figure()
-        fig.add_trace(
-            go.Scatter(
-                x=kernel_sizes,
-                y=output_sizes,
-                mode="lines+markers",
-                name="输出尺寸",
-                text=[f"{out}×{out}" for out in output_sizes],
-                textposition="top center",
-            )
-        )
-
-        fig.update_layout(
+        fig_kernel_size = chart_builder.create_line_chart(
+            x_data=kernel_sizes,
+            y_data=output_sizes,
             title="卷积核大小 vs 输出尺寸",
-            xaxis_title="卷积核大小",
-            yaxis_title="输出尺寸",
-            height=300,
+            x_title="卷积核大小",
+            y_title="输出尺寸",
+            height=300
         )
-        st.plotly_chart(fig, width="stretch")
+        
+        # 添加文本标签
+        fig_kernel_size.update_traces(
+            text=[f"{out}×{out}" for out in output_sizes],
+            textposition="top center"
+        )
+        chart_builder.display_chart(fig_kernel_size)
 
     with param_analysis[1]:
         st.markdown(

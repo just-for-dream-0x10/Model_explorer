@@ -1,0 +1,63 @@
+{
+  "id": "gpt_like",
+  "name": "GPT风格解码器",
+  "description": "类GPT的自回归Transformer解码器，用于文本生成",
+  "category": "Transformer",
+  "icon": "✍️",
+  "difficulty": "advanced",
+  "tags": ["GPT", "文本生成", "自回归", "语言模型"],
+  "use_cases": ["文本生成", "对话系统", "代码生成", "创意写作"],
+  "input_shape": [1, 1024],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "wte",
+      "params": {"in_features": 1024, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "drop_embed",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "c_attn",
+      "params": {"in_features": 768, "out_features": 2304}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "c_proj",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "attn_drop",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "c_fc",
+      "params": {"in_features": 768, "out_features": 3072}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "act",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "c_proj_mlp",
+      "params": {"in_features": 3072, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "mlp_drop",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "lm_head",
+      "params": {"in_features": 768, "out_features": 50257}
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+{
+  "id": "wide_cnn",
+  "name": "宽型CNN",
+  "description": "更宽的CNN架构，每层使用更多通道数",
+  "category": "CNN",
+  "icon": "📐",
+  "difficulty": "intermediate",
+  "tags": ["CNN", "宽网络", "高容量", "性能优先"],
+  "use_cases": ["高精度分类", "复杂数据集", "充足计算资源"],
+  "input_shape": [1, 3, 32, 32],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 3, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn1",
+      "params": {"num_features": 128}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2",
+      "params": {"in_channels": 128, "out_channels": 256, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn2",
+      "params": {"num_features": 256}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv3",
+      "params": {"in_channels": 256, "out_channels": 512, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn3",
+      "params": {"num_features": 512}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 32768, "out_features": 512}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu4",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout",
+      "params": {"p": 0.5}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 512, "out_features": 10}
+    }
+  ]
+}
