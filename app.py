@@ -21,6 +21,8 @@ from tabs.normalization_comparison import normalization_comparison_tab
 from tabs.vit_analysis import vit_analysis_tab
 from tabs.architecture_comparison import architecture_comparison_tab
 from tabs.memory_analysis import memory_analysis_tab
+from tabs.stability_diagnosis import stability_diagnosis_tab
+from tabs.architecture_designer import architecture_designer_tab
 from cnn import cnn_tab
 from gnn import gnn_tab
 from rnn_lstm import rnn_lstm_tab
@@ -86,6 +88,8 @@ if CHINESE_SUPPORTED:
         module_options = {
             "🔢 参数量计算器": "params_calculator",
             "💾 内存分析器": "memory_analysis",
+            "⚠️ 数值稳定性诊断": "stability_diagnosis",
+            "🎨 架构设计工作台": "architecture_designer",
             "📐 数学推导工具": "math_derivation",
             "🎮 交互实验室": "interactive_lab"
         }
@@ -112,6 +116,8 @@ else:
         module_options = {
             "🔢 Params Calculator": "params_calculator",
             "💾 Memory Analyzer": "memory_analysis",
+            "⚠️ Stability Diagnosis": "stability_diagnosis",
+            "🎨 Architecture Designer": "architecture_designer",
             "📐 Math Derivation": "math_derivation",
             "🎮 Interactive Lab": "interactive_lab"
         }
@@ -155,6 +161,10 @@ if selected_module == "params_calculator":
     params_calculator_tab()
 elif selected_module == "memory_analysis":
     memory_analysis_tab(CHINESE_SUPPORTED)
+elif selected_module == "stability_diagnosis":
+    stability_diagnosis_tab(CHINESE_SUPPORTED)
+elif selected_module == "architecture_designer":
+    architecture_designer_tab(CHINESE_SUPPORTED)
 elif selected_module == "math_derivation":
     math_derivation_tab()
 elif selected_module == "interactive_lab":

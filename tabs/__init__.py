@@ -10,6 +10,8 @@ from .normalization_comparison import normalization_comparison_tab
 from .vit_analysis import vit_analysis_tab
 from .architecture_comparison import architecture_comparison_tab
 from .memory_analysis import memory_analysis_tab
+from .stability_diagnosis import stability_diagnosis_tab
+from .architecture_designer import architecture_designer_tab
 
 __all__ = [
     'params_calculator_tab',
@@ -20,4 +22,6 @@ __all__ = [
     'vit_analysis_tab',
     'architecture_comparison_tab',
     'memory_analysis_tab',
+    'stability_diagnosis_tab',
+    'architecture_designer_tab',
 ]
