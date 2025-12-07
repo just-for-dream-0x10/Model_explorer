@@ -6,13 +6,12 @@ Author: Just For Dream Lab
 Version: 1.0.0
 """
 
-from typing import Dict, List, Tuple, Optional, Union, Any
+from typing import Dict, List, Tuple, Optional, Union
 import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import streamlit as st
 import pandas as pd
-from .chart_optimizer import ChartOptimizer, cached_plotly_chart
 
 
 class ChartBuilder:
@@ -29,7 +28,7 @@ class ChartBuilder:
         ...     title="测试图表",
         ...     line_names=["系列1", "系列2"]
         ... )
-        >>> cached_plotly_chart(fig, use_container_width=True)
+        >>> st.plotly_chart(fig, use_container_width=True)
     """
 
     # 默认样式配置
@@ -262,13 +261,7 @@ class ChartBuilder:
 
         return fig
 
-    def create_heatmap(
-        self,
-        data: np.ndarray,
-        title: str,
-        **kwargs
-    ) -> go.Figure:
-        """创建热力图
+    """创建热力图
 
         Args:
             data: 2D数据数组
@@ -283,7 +276,7 @@ class ChartBuilder:
         y_title = kwargs.pop('y_title', 'Y轴')
         colorscale = kwargs.pop('colorscale', 'Viridis')
         height = kwargs.pop('height', 400)
-
+        
         fig = go.Figure(data=go.Heatmap(z=data, colorscale=colorscale))
 
         layout = {
@@ -427,28 +420,3 @@ class PlotHelper:
                     st.metric(key, value)
                 else:
                     st.metric(key, value)
-
-    def render_chart_optimized(
-        self,
-        fig: go.Figure,
-        use_cache: bool = True,
-        cache_data: Optional[Dict[str, Any]] = None,
-        **kwargs
-    ) -> None:
-        """优化的图表渲染方法
-        
-        Args:
-            fig: 图表对象
-            use_cache: 是否使用缓存
-            cache_data: 缓存数据
-            **kwargs: st.plotly_chart的其他参数
-        """
-        # 优化图表
-        fig = ChartOptimizer.optimize_figure(fig)
-        
-        if use_cache and cache_data:
-            # 使用缓存渲染
-            cached_plotly_chart(fig, cache_key_data=cache_data, **kwargs)
-        else:
-            # 直接渲染
-            cached_plotly_chart(fig, **kwargs)

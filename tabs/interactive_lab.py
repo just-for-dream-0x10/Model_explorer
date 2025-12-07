@@ -9,8 +9,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
-from scipy import signal
 from simple_latex import display_latex
+from utils.visualization.chart_optimizer import ChartOptimizer, cached_plotly_chart
 
 
 def interactive_lab_tab(CHINESE_SUPPORTED):
@@ -483,10 +483,16 @@ def _activation_comparison(CHINESE_SUPPORTED):
                 y = activation_funcs[act_name](x)
                 fig.add_trace(go.Scatter(x=x, y=y, name=act_name, mode="lines"))
 
-        fig.update_layout(
-            xaxis_title="x", yaxis_title="f(x)", height=400, hovermode="x unified"
-        )
-        st.plotly_chart(fig, width="stretch", key="activation_functions")
+        fig = ChartOptimizer.optimize_figure(fig)
+        
+        # 使用缓存渲染，缓存键基于激活函数和x范围
+        cache_data = {
+            "type": "activation_functions",
+            "activations": sorted(activations),
+            "x_range": (x.min(), x.max()),
+            "num_points": len(x)
+        }
+        cached_plotly_chart(fig, cache_key_data=cache_data, width="stretch", key="activation_functions")
 
     # 导数对比
     st.markdown("---")
