@@ -256,9 +256,19 @@ def _graph_laplacian():
     # 创建示例图并计算拉普拉斯矩阵
     st.markdown("### 拉普拉斯矩阵计算示例")
 
-    # 创建示例图
-    num_nodes = 5  # 使用5个节点的示例图
-    G = nx.erdos_renyi_graph(num_nodes, 0.4, seed=42)
+    # 使用动态示例生成器
+    from utils.example_generator import get_dynamic_example
+
+    try:
+        example = get_dynamic_example("math")
+        num_nodes = example["num_nodes"]
+        # 从邻接矩阵创建NetworkX图
+        A = example["adj_matrix"]
+        G = nx.from_numpy_array(A)
+    except Exception as e:
+        # 如果动态生成失败，使用默认示例
+        num_nodes = 5  # 使用5个节点的示例图
+        G = nx.erdos_renyi_graph(num_nodes, 0.4, seed=42)
     A = nx.adjacency_matrix(G).todense()
     D = np.diag(np.sum(A, axis=1).A1)  # 修复：使用 .A1 转换为1D数组
     L = D - A

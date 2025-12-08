@@ -7,4 +7,4 @@ Neural Network Architecture Templates
 
 from .template_loader import TemplateLoader, NetworkTemplate
 
-__all__ = ['TemplateLoader', 'NetworkTemplate']
+__all__ = ["TemplateLoader", "NetworkTemplate"]

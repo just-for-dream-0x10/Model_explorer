@@ -34,23 +34,29 @@ class ChartBuilder:
 
     # 默认样式配置
     DEFAULT_COLORS = [
-        '#1f77b4',  # 蓝色
-        '#ff7f0e',  # 橙色
-        '#2ca02c',  # 绿色
-        '#d62728',  # 红色
-        '#9467bd',  # 紫色
-        '#8c564b',  # 棕色
-        '#e377c2',  # 粉色
-        '#7f7f7f',  # 灰色
+        "#1f77b4",  # 蓝色
+        "#ff7f0e",  # 橙色
+        "#2ca02c",  # 绿色
+        "#d62728",  # 红色
+        "#9467bd",  # 紫色
+        "#8c564b",  # 棕色
+        "#e377c2",  # 粉色
+        "#7f7f7f",  # 灰色
     ]
 
     DEFAULT_LAYOUT = {
-        'font': {'family': 'Arial, sans-serif', 'size': 12},
-        'margin': {'l': 50, 'r': 50, 't': 80, 'b': 50},
-        'plot_bgcolor': 'rgba(240, 240, 240, 0.8)',
-        'paper_bgcolor': 'white',
-        'showlegend': True,
-        'legend': {'orientation': 'h', 'yanchor': 'bottom', 'y': 1.02, 'xanchor': 'right', 'x': 1}
+        "font": {"family": "Arial, sans-serif", "size": 12},
+        "margin": {"l": 50, "r": 50, "t": 80, "b": 50},
+        "plot_bgcolor": "rgba(240, 240, 240, 0.8)",
+        "paper_bgcolor": "white",
+        "showlegend": True,
+        "legend": {
+            "orientation": "h",
+            "yanchor": "bottom",
+            "y": 1.02,
+            "xanchor": "right",
+            "x": 1,
+        },
     }
 
     def __init__(self):
@@ -67,7 +73,7 @@ class ChartBuilder:
         y_title: str = "Y轴",
         line_names: Optional[List[str]] = None,
         height: int = 400,
-        **kwargs
+        **kwargs,
     ) -> go.Figure:
         """创建折线图
 
@@ -101,27 +107,29 @@ class ChartBuilder:
 
         # 添加每条线
         for i, y_values in enumerate(y_data):
-            line_name = line_names[i] if line_names and i < len(line_names) else f"系列{i+1}"
+            line_name = (
+                line_names[i] if line_names and i < len(line_names) else f"系列{i+1}"
+            )
             color = self.colors[i % len(self.colors)]
 
             fig.add_trace(
                 go.Scatter(
                     x=x_data,
                     y=y_values,
-                    mode='lines+markers',
+                    mode="lines+markers",
                     name=line_name,
-                    line={'color': color, 'width': 2},
-                    marker={'size': 6}
+                    line={"color": color, "width": 2},
+                    marker={"size": 6},
                 )
             )
 
         # 更新布局
         layout = {
-            'title': {'text': title, 'x': 0.5},
-            'xaxis': {'title': x_title},
-            'yaxis': {'title': y_title},
-            'height': height,
-            **self.layout_config
+            "title": {"text": title, "x": 0.5},
+            "xaxis": {"title": x_title},
+            "yaxis": {"title": y_title},
+            "height": height,
+            **self.layout_config,
         }
         layout.update(kwargs)
         fig.update_layout(**layout)
@@ -137,7 +145,7 @@ class ChartBuilder:
         y_title: str = "数值",
         color: Optional[str] = None,
         height: int = 400,
-        **kwargs
+        **kwargs,
     ) -> go.Figure:
         """创建柱状图
 
@@ -161,30 +169,25 @@ class ChartBuilder:
                 x=x_data,
                 y=y_data,
                 marker_color=color or self.colors[0],
-                text=[f'{val:.2f}' for val in y_data],
-                textposition='auto'
+                text=[f"{val:.2f}" for val in y_data],
+                textposition="auto",
             )
         )
 
         # 更新布局
         layout = {
-            'title': {'text': title, 'x': 0.5},
-            'xaxis': {'title': x_title},
-            'yaxis': {'title': y_title},
-            'height': height,
-            **self.layout_config
+            "title": {"text": title, "x": 0.5},
+            "xaxis": {"title": x_title},
+            "yaxis": {"title": y_title},
+            "height": height,
+            **self.layout_config,
         }
         layout.update(kwargs)
         fig.update_layout(**layout)
 
         return fig
 
-    def create_heatmap(
-        self,
-        data: np.ndarray,
-        title: str,
-        **kwargs
-    ) -> go.Figure:
+    def create_heatmap(self, data: np.ndarray, title: str, **kwargs) -> go.Figure:
         """创建热力图
 
         Args:
@@ -199,21 +202,15 @@ class ChartBuilder:
         Returns:
             Plotly图表对象
         """
-        fig = go.Figure(
-            data=go.Heatmap(
-                z=data,
-                colorscale=colorscale,
-                showscale=True
-            )
-        )
+        fig = go.Figure(data=go.Heatmap(z=data, colorscale=colorscale, showscale=True))
 
         # 更新布局
         layout = {
-            'title': {'text': title, 'x': 0.5},
-            'xaxis': {'title': x_title},
-            'yaxis': {'title': y_title},
-            'height': height,
-            **self.layout_config
+            "title": {"text": title, "x": 0.5},
+            "xaxis": {"title": x_title},
+            "yaxis": {"title": y_title},
+            "height": height,
+            **self.layout_config,
         }
         layout.update(kwargs)
         fig.update_layout(**layout)
@@ -226,7 +223,7 @@ class ChartBuilder:
         values: List[Union[int, float]],
         title: str,
         height: int = 400,
-        **kwargs
+        **kwargs,
     ) -> go.Figure:
         """创建饼图
 
@@ -245,29 +242,24 @@ class ChartBuilder:
                 labels=labels,
                 values=values,
                 hole=0.3,  # 甜甜圈图
-                textinfo='label+percent',
-                textposition='outside'
+                textinfo="label+percent",
+                textposition="outside",
             )
         )
 
         # 更新布局
         layout = {
-            'title': {'text': title, 'x': 0.5},
-            'height': height,
-            'showlegend': True,
-            **self.layout_config
+            "title": {"text": title, "x": 0.5},
+            "height": height,
+            "showlegend": True,
+            **self.layout_config,
         }
         layout.update(kwargs)
         fig.update_layout(**layout)
 
         return fig
 
-    def create_heatmap(
-        self,
-        data: np.ndarray,
-        title: str,
-        **kwargs
-    ) -> go.Figure:
+    def create_heatmap(self, data: np.ndarray, title: str, **kwargs) -> go.Figure:
         """创建热力图
 
         Args:
@@ -279,10 +271,10 @@ class ChartBuilder:
             Plotly图表对象
         """
         # 设置默认值
-        x_title = kwargs.pop('x_title', 'X轴')
-        y_title = kwargs.pop('y_title', 'Y轴')
-        colorscale = kwargs.pop('colorscale', 'Viridis')
-        height = kwargs.pop('height', 400)
+        x_title = kwargs.pop("x_title", "X轴")
+        y_title = kwargs.pop("y_title", "Y轴")
+        colorscale = kwargs.pop("colorscale", "Viridis")
+        height = kwargs.pop("height", 400)
 
         fig = go.Figure(data=go.Heatmap(z=data, colorscale=colorscale))
 
@@ -291,7 +283,7 @@ class ChartBuilder:
             "xaxis_title": x_title,
             "yaxis_title": y_title,
             "height": height,
-            **self.layout_config
+            **self.layout_config,
         }
         layout.update(kwargs)
         fig.update_layout(**layout)
@@ -304,7 +296,7 @@ class ChartBuilder:
         cols: int,
         subplot_titles: List[str],
         height: int = 600,
-        **kwargs
+        **kwargs,
     ) -> Tuple[go.Figure, List[go.Figure]]:
         """创建子图
 
@@ -323,24 +315,18 @@ class ChartBuilder:
             cols=cols,
             subplot_titles=subplot_titles,
             vertical_spacing=0.1 / rows,
-            horizontal_spacing=0.1 / cols
+            horizontal_spacing=0.1 / cols,
         )
 
         # 更新布局
-        layout = {
-            'height': height,
-            **self.layout_config
-        }
+        layout = {"height": height, **self.layout_config}
         layout.update(kwargs)
         fig.update_layout(**layout)
 
         return fig
 
     def display_chart(
-        self,
-        fig: go.Figure,
-        use_container_width: bool = True,
-        **kwargs
+        self, fig: go.Figure, use_container_width: bool = True, **kwargs
     ) -> None:
         """显示图表
 
@@ -349,11 +335,7 @@ class ChartBuilder:
             use_container_width: 是否使用容器宽度
             **kwargs: 其他参数
         """
-        st.plotly_chart(
-            fig,
-            use_container_width=use_container_width,
-            **kwargs
-        )
+        st.plotly_chart(fig, use_container_width=use_container_width, **kwargs)
 
 
 class PlotHelper:
@@ -388,8 +370,7 @@ class PlotHelper:
 
     @staticmethod
     def create_comparison_table(
-        data: Dict[str, Dict[str, Union[int, float]]],
-        title: str
+        data: Dict[str, Dict[str, Union[int, float]]], title: str
     ) -> None:
         """创建对比表格
 
@@ -401,7 +382,7 @@ class PlotHelper:
 
         df_data = []
         for key, values in data.items():
-            row = {'项目': key}
+            row = {"项目": key}
             row.update(values)
             df_data.append(row)
 
@@ -410,8 +391,7 @@ class PlotHelper:
 
     @staticmethod
     def show_metrics(
-        metrics: Dict[str, Union[str, int, float]],
-        columns: int = 3
+        metrics: Dict[str, Union[str, int, float]], columns: int = 3
     ) -> None:
         """显示指标卡片
 
@@ -433,10 +413,10 @@ class PlotHelper:
         fig: go.Figure,
         use_cache: bool = True,
         cache_data: Optional[Dict[str, Any]] = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         """优化的图表渲染方法
-        
+
         Args:
             fig: 图表对象
             use_cache: 是否使用缓存
@@ -445,7 +425,7 @@ class PlotHelper:
         """
         # 优化图表
         fig = ChartOptimizer.optimize_figure(fig)
-        
+
         if use_cache and cache_data:
             # 使用缓存渲染
             cached_plotly_chart(fig, cache_key_data=cache_data, **kwargs)

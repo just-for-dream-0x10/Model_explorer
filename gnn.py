@@ -20,11 +20,41 @@ def gnn_tab(CHINESE_SUPPORTED):
     """GNN标签页内容"""
 
     # 定义默认参数
-    num_nodes = 8
-    num_layers = 2
+    # 使用动态示例生成器
+    from utils.example_generator import get_dynamic_example
+
+    try:
+        example = get_dynamic_example("gnn")
+        num_nodes = example["num_nodes"]
+        feature_dim = example["feature_dim"]
+    except Exception as e:
+        # 如果动态生成失败，使用默认值
+        num_nodes = 8
+        feature_dim = 3
+
+    # 使用动态参数建议器
+    from utils.parameter_suggester import get_suggested_params
+
+    try:
+        suggested_params = get_suggested_params(
+            "gnn",
+            num_nodes=num_nodes,
+            feature_dim=feature_dim,
+            task_complexity="medium",
+        )
+        num_layers = suggested_params["num_layers"]
+        hidden_dims = suggested_params["hidden_dims"]
+        dropout = suggested_params["dropout"]
+        learning_rate = suggested_params["learning_rate"]
+    except Exception as e:
+        # 如果动态建议失败，使用默认值
+        num_layers = 2
+        hidden_dims = [feature_dim * 4, feature_dim * 8]
+        dropout = 0.5
+        learning_rate = 0.001
 
     st.header("🕸️ GNN图神经网络数学原理")
-    
+
     # 初始化图表工具
     chart_builder = ChartBuilder()
 
@@ -177,7 +207,7 @@ def gnn_tab(CHINESE_SUPPORTED):
             except Exception as calc_error:
                 raise ComputationError(
                     operation="图拉普拉斯矩阵归一化",
-                    error_details=f"奇异矩阵处理失败: {str(calc_error)}"
+                    error_details=f"奇异矩阵处理失败: {str(calc_error)}",
                 ) from e
 
         st.markdown(
@@ -195,9 +225,15 @@ def gnn_tab(CHINESE_SUPPORTED):
     st.markdown("---")
     st.markdown("### 🔗 消息传递机制")
 
-    # 初始化节点特征
-    feature_dim = 3
-    H = np.random.randn(num_nodes, feature_dim).round(2)
+    # 使用动态示例生成器
+    try:
+        example = get_dynamic_example("gnn")
+        H = example["node_features"]
+        feature_dim = example["feature_dim"]
+    except Exception as e:
+        # 如果动态生成失败，使用默认值
+        feature_dim = 3
+        H = np.random.randn(num_nodes, feature_dim).round(2)
 
     col1, col2 = st.columns([1, 1])
 

@@ -14,14 +14,14 @@ from .stability_diagnosis import stability_diagnosis_tab
 from .architecture_designer import architecture_designer_tab
 
 __all__ = [
-    'params_calculator_tab',
-    'math_derivation_tab',
-    'failure_museum_tab',
-    'resnet_analysis_tab',
-    'normalization_comparison_tab',
-    'vit_analysis_tab',
-    'architecture_comparison_tab',
-    'memory_analysis_tab',
-    'stability_diagnosis_tab',
-    'architecture_designer_tab',
+    "params_calculator_tab",
+    "math_derivation_tab",
+    "failure_museum_tab",
+    "resnet_analysis_tab",
+    "normalization_comparison_tab",
+    "vit_analysis_tab",
+    "architecture_comparison_tab",
+    "memory_analysis_tab",
+    "stability_diagnosis_tab",
+    "architecture_designer_tab",
 ]

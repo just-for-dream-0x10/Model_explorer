@@ -10,4 +10,4 @@ from .network_analyzer import NetworkAnalyzer
 from .param_calculator import ParameterCalculator
 from .memory_analyzer import MemoryAnalyzer
 
-__all__ = ['NetworkAnalyzer', 'ParameterCalculator', 'MemoryAnalyzer']
+__all__ = ["NetworkAnalyzer", "ParameterCalculator", "MemoryAnalyzer"]

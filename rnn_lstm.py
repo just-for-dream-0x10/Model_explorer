@@ -502,8 +502,21 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
         noise = np.random.normal(0, noise_level, data_length)
         noisy_signal = clean_signal + noise
 
-        # 创建序列数据
-        sequence_length = 20
+        # 使用动态参数建议器
+        from utils.parameter_suggester import get_suggested_params
+
+        try:
+            # 获取用户选择的序列长度
+            sequence_length = st.session_state.get("lstm_sequence_length", 20)
+        except:
+            # 如果获取失败，使用动态建议
+            suggested_params = get_suggested_params(
+                "rnn",
+                sequence_length=20,
+                input_size=1,  # 单变量时间序列
+                task_type="regression",
+            )
+            sequence_length = 20  # 保持默认值，但可以扩展
         X, y = [], []
         for i in range(len(noisy_signal) - sequence_length):
             X.append(noisy_signal[i : i + sequence_length])
@@ -520,23 +533,38 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
         if st.button("🚀 开始训练", key="train_button"):
             st.markdown("**训练中...**")
 
-            # 模拟训练过程
-            epochs = 50
-            train_losses = []
-            val_losses = []
+            # 使用动态性能预测模拟训练过程
+            from utils.training import simulate_training
 
-            for epoch in range(epochs):
-                # 模拟损失下降
-                train_loss = 1.0 * np.exp(-epoch / 20) + 0.1 * np.random.random()
-                val_loss = 1.2 * np.exp(-epoch / 25) + 0.15 * np.random.random()
-                train_losses.append(train_loss)
-                val_losses.append(val_loss)
+            # 获取用户选择的参数
+            hidden_size = st.session_state.get("lstm_hidden", 256)
+            num_layers = st.session_state.get("lstm_layers", 2)
+
+            # 估算模型参数数量
+            num_params = (
+                4
+                * (sequence_length * hidden_size + hidden_size * hidden_size)
+                * num_layers
+            )
+
+            # 模拟训练过程
+            training_result = simulate_training(
+                epochs=50,
+                model_type="RNN",
+                num_params=num_params,
+                num_classes=1,  # 回归任务
+                dataset_size=len(X_train),
+                learning_rate=0.001,
+            )
+
+            train_losses = training_result["train_loss"]
+            val_losses = training_result["val_loss"]
 
             # 显示训练曲线
             fig = go.Figure()
             fig.add_trace(
                 go.Scatter(
-                    x=list(range(epochs)),
+                    x=list(range(50)),
                     y=train_losses,
                     mode="lines",
                     name="训练损失",
@@ -545,7 +573,7 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
             )
             fig.add_trace(
                 go.Scatter(
-                    x=list(range(epochs)),
+                    x=list(range(50)),
                     y=val_losses,
                     mode="lines",
                     name="验证损失",

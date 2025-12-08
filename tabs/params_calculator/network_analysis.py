@@ -103,14 +103,10 @@ def predefined_network_analysis():
         )
 
     with col3:
-        st.metric(
-            "内存占用", f"{total_memory:.1f}MB", help="参数存储所需内存"
-        )
+        st.metric("内存占用", f"{total_memory:.1f}MB", help="参数存储所需内存")
 
     with col4:
-        st.metric(
-            "层数", f"{len(layers_data)}", help="网络中层的总数"
-        )
+        st.metric("层数", f"{len(layers_data)}", help="网络中层的总数")
 
     # 参数量分布图
     st.markdown("---")
@@ -157,8 +153,12 @@ def predefined_network_analysis():
         )
 
     df = pd.DataFrame(detailed_data)
-    df["参数量"] = df["参数量"].apply(lambda x: f"{x/1e6:.2f}M" if x > 1e6 else f"{x/1e3:.1f}K")
-    df["FLOPs"] = df["FLOPs"].apply(lambda x: f"{x/1e9:.2f}G" if x > 1e9 else f"{x/1e6:.1f}M")
+    df["参数量"] = df["参数量"].apply(
+        lambda x: f"{x/1e6:.2f}M" if x > 1e6 else f"{x/1e3:.1f}K"
+    )
+    df["FLOPs"] = df["FLOPs"].apply(
+        lambda x: f"{x/1e9:.2f}G" if x > 1e9 else f"{x/1e6:.1f}M"
+    )
 
     st.dataframe(df, use_container_width=True)
 
@@ -224,45 +224,57 @@ def custom_network_analysis():
             bidirectional = st.checkbox("双向", key="lstm_bidirectional")
 
         elif layer_type == "Embedding":
-            num_embeddings = st.number_input("词表大小", 1000, 100000, 10000, key="embed_vocab")
+            num_embeddings = st.number_input(
+                "词表大小", 1000, 100000, 10000, key="embed_vocab"
+            )
             embedding_dim = st.number_input("嵌入维度", 64, 1024, 512, key="embed_dim")
 
     with col3:
         if st.button("➕ 添加层", use_container_width=True):
             # 构建层配置
             layer_config = {"type": layer_type}
-            
+
             if layer_type == "Conv2d":
-                layer_config.update({
-                    "in_channels": in_channels,
-                    "out_channels": out_channels,
-                    "kernel_size": kernel_size,
-                    "stride": stride,
-                    "padding": padding,
-                })
+                layer_config.update(
+                    {
+                        "in_channels": in_channels,
+                        "out_channels": out_channels,
+                        "kernel_size": kernel_size,
+                        "stride": stride,
+                        "padding": padding,
+                    }
+                )
             elif layer_type == "Linear":
-                layer_config.update({
-                    "in_features": in_features,
-                    "out_features": out_features,
-                })
+                layer_config.update(
+                    {
+                        "in_features": in_features,
+                        "out_features": out_features,
+                    }
+                )
             elif layer_type == "MultiHeadAttention":
-                layer_config.update({
-                    "d_model": d_model,
-                    "num_heads": num_heads,
-                    "seq_len": seq_len,
-                })
+                layer_config.update(
+                    {
+                        "d_model": d_model,
+                        "num_heads": num_heads,
+                        "seq_len": seq_len,
+                    }
+                )
             elif layer_type == "LSTM":
-                layer_config.update({
-                    "input_size": input_size,
-                    "hidden_size": hidden_size,
-                    "num_layers": num_layers,
-                    "bidirectional": bidirectional,
-                })
+                layer_config.update(
+                    {
+                        "input_size": input_size,
+                        "hidden_size": hidden_size,
+                        "num_layers": num_layers,
+                        "bidirectional": bidirectional,
+                    }
+                )
             elif layer_type == "Embedding":
-                layer_config.update({
-                    "num_embeddings": num_embeddings,
-                    "embedding_dim": embedding_dim,
-                })
+                layer_config.update(
+                    {
+                        "num_embeddings": num_embeddings,
+                        "embedding_dim": embedding_dim,
+                    }
+                )
 
             st.session_state.custom_layers.append(layer_config)
             st.rerun()
@@ -324,7 +336,7 @@ def custom_network_analysis():
 def analyze_layer(layer_config: Dict) -> Dict:
     """分析单个层的参数量和FLOPs"""
     layer_type = layer_config["type"]
-    
+
     if layer_type == "Conv2d":
         # 假设输入形状
         input_shape = (layer_config["in_channels"], 224, 224)
@@ -336,34 +348,30 @@ def analyze_layer(layer_config: Dict) -> Dict:
             layer_config["padding"],
             input_shape,
         )
-        
+
     elif layer_type == "Linear":
         result = LayerAnalyzer.linear_analysis(
-            layer_config["in_features"],
-            layer_config["out_features"]
+            layer_config["in_features"], layer_config["out_features"]
         )
-        
+
     elif layer_type == "MultiHeadAttention":
         result = LayerAnalyzer.attention_analysis(
-            layer_config["d_model"],
-            layer_config["num_heads"],
-            layer_config["seq_len"]
+            layer_config["d_model"], layer_config["num_heads"], layer_config["seq_len"]
         )
-        
+
     elif layer_type == "LSTM":
         result = LayerAnalyzer.lstm_analysis(
             layer_config["input_size"],
             layer_config["hidden_size"],
             layer_config["num_layers"],
-            bidirectional=layer_config.get("bidirectional", False)
+            bidirectional=layer_config.get("bidirectional", False),
         )
-        
+
     elif layer_type == "Embedding":
         result = LayerAnalyzer.embedding_analysis(
-            layer_config["num_embeddings"],
-            layer_config["embedding_dim"]
+            layer_config["num_embeddings"], layer_config["embedding_dim"]
         )
-        
+
     else:
         # 其他层的默认处理
         result = {
@@ -372,7 +380,7 @@ def analyze_layer(layer_config: Dict) -> Dict:
             "flops": 0,
             "memory": 0,
         }
-    
+
     return {
         "type": layer_type,
         "params": result["parameters"]["total"],
@@ -395,7 +403,12 @@ def get_network_config(network_name: str, input_size: int) -> List[Dict]:
     elif "BERT-base" in network_name:
         return [
             {"type": "Embedding", "params": 30522 * 768, "flops": 0, "memory": 89.0},
-            {"type": "MultiHeadAttention", "params": 2364416, "flops": 2364416, "memory": 9.0},
+            {
+                "type": "MultiHeadAttention",
+                "params": 2364416,
+                "flops": 2364416,
+                "memory": 9.0,
+            },
             # ... 更多层
         ]
     else:
@@ -403,10 +416,7 @@ def get_network_config(network_name: str, input_size: int) -> List[Dict]:
 
 
 def generate_network_report(
-    network_name: str, 
-    layers_data: List[Dict], 
-    total_params: int, 
-    total_flops: int
+    network_name: str, layers_data: List[Dict], total_params: int, total_flops: int
 ):
     """生成网络分析报告"""
     st.markdown("---")
@@ -431,11 +441,11 @@ def generate_network_report(
         """
 
     st.markdown(report)
-    
+
     # 下载按钮
     st.download_button(
         label="📥 下载报告",
         data=report,
         file_name=f"{network_name}_analysis.md",
-        mime="text/markdown"
+        mime="text/markdown",
     )

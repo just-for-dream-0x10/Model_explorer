@@ -36,7 +36,7 @@ def params_calculator_tab():
         "选择分析模式",
         ["单层分析", "完整网络分析"],
         horizontal=True,
-        key="analysis_mode"
+        key="analysis_mode",
     )
 
     if analysis_mode == "单层分析":
@@ -90,9 +90,7 @@ def _conv2d_analysis(analyzer):
 
     with col1:
         st.markdown("**输入配置**")
-        C_in = st.number_input(
-            "输入通道数 (in_channels)", min_value=1, value=3, step=1
-        )
+        C_in = st.number_input("输入通道数 (in_channels)", min_value=1, value=3, step=1)
         H_in = st.number_input("输入高度 (H)", min_value=1, value=224, step=1)
         W_in = st.number_input("输入宽度 (W)", min_value=1, value=224, step=1)
 
@@ -151,7 +149,7 @@ def _display_conv2d_results(result, C_in, H_in, W_in):
     # 参数量
     st.markdown("#### 2️⃣ 参数量计算")
     st.latex(r"Params_{weight} = C_{out} \times C_{in} \times K_h \times K_w")
-    
+
     weight_params = result["parameters"]["weight"]
     bias_params = result["parameters"]["bias"]
     total_params = result["parameters"]["total"]
@@ -166,8 +164,10 @@ def _display_conv2d_results(result, C_in, H_in, W_in):
 
     # FLOPs
     st.markdown("#### 3️⃣ FLOPs计算")
-    st.latex(r"FLOPs = 2 \times MACs = 2 \times C_{out} \times H_{out} \times W_{out} \times K_h \times K_w \times C_{in}")
-    
+    st.latex(
+        r"FLOPs = 2 \times MACs = 2 \times C_{out} \times H_{out} \times W_{out} \times K_h \times K_w \times C_{in}"
+    )
+
     total_flops = result["flops"]["total"]
     macs = result["flops"]["macs"]
 
@@ -196,7 +196,7 @@ def _display_conv2d_results(result, C_in, H_in, W_in):
 def _depthwise_conv_analysis(analyzer):
     """深度可分离卷积分析"""
     st.markdown("### 📱 DepthwiseConv2d 深度可分离卷积分析")
-    
+
     # 配置界面
     col1, col2 = st.columns(2)
 
@@ -219,20 +219,20 @@ def _depthwise_conv_analysis(analyzer):
     # 显示结果
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("参数量", f"{result['parameters']['total']:,}")
         st.metric("内存占用", f"{result['memory_mb']['parameters']:.2f}MB")
     with col2:
-        st.metric("FLOPs", result['flops']['flops_readable'])
-        st.metric("输出形状", str(result['output_shape']))
+        st.metric("FLOPs", result["flops"]["flops_readable"])
+        st.metric("输出形状", str(result["output_shape"]))
 
 
 def _linear_analysis(analyzer):
     """全连接层分析"""
     st.markdown("### 🔗 Linear 全连接层分析")
-    
+
     in_features = st.number_input("输入特征数", 1, 4096, 512)
     out_features = st.number_input("输出特征数", 1, 4096, 512)
     use_bias = st.checkbox("使用偏置", True)
@@ -241,20 +241,20 @@ def _linear_analysis(analyzer):
 
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("权重参数", f"{result['parameters']['weight']:,}")
     with col2:
         st.metric("总参数量", f"{result['parameters']['total']:,}")
     with col3:
-        st.metric("FLOPs", result['flops']['flops_readable'])
+        st.metric("FLOPs", result["flops"]["flops_readable"])
 
 
 def _attention_analysis(analyzer):
     """多头注意力分析"""
     st.markdown("### 👁️ MultiHeadAttention 多头注意力分析")
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
         d_model = st.number_input("模型维度", 64, 2048, 512)
@@ -269,12 +269,12 @@ def _attention_analysis(analyzer):
 
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("总参数量", f"{result['parameters']['total']:,}")
     with col2:
-        st.metric("FLOPs", result['flops']['flops_readable'])
+        st.metric("FLOPs", result["flops"]["flops_readable"])
     with col3:
         st.metric("注意力矩阵内存", f"{result['memory_mb']['attention_matrix']:.2f}MB")
 
@@ -282,7 +282,7 @@ def _attention_analysis(analyzer):
 def _lstm_analysis(analyzer):
     """LSTM分析"""
     st.markdown("### 🔄 LSTM 长短期记忆网络分析")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         input_size = st.number_input("输入维度", 64, 2048, 512)
@@ -291,24 +291,26 @@ def _lstm_analysis(analyzer):
         num_layers = st.number_input("层数", 1, 8, 2)
         bidirectional = st.checkbox("双向", False)
 
-    result = analyzer.lstm_analysis(input_size, hidden_size, num_layers, bidirectional=True)
+    result = analyzer.lstm_analysis(
+        input_size, hidden_size, num_layers, bidirectional=True
+    )
 
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2, col3 = st.columns(3)
     with col1:
         st.metric("总参数量", f"{result['parameters']['total']:,}")
     with col2:
         st.metric("每层参数", f"{result['parameters']['per_layer']:,}")
     with col3:
-        st.metric("每时间步FLOPs", result['flops']['flops_readable'])
+        st.metric("每时间步FLOPs", result["flops"]["flops_readable"])
 
 
 def _embedding_analysis(analyzer):
     """嵌入层分析"""
     st.markdown("### 📚 Embedding 嵌入层分析")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         num_embeddings = st.number_input("词表大小", 1000, 100000, 10000)
@@ -319,7 +321,7 @@ def _embedding_analysis(analyzer):
 
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("参数量", f"{result['parameters']['total']:,}")
@@ -330,7 +332,7 @@ def _embedding_analysis(analyzer):
 def _batchnorm_analysis(analyzer):
     """批归一化分析"""
     st.markdown("### 📊 BatchNorm2d 批归一化分析")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         num_features = st.number_input("特征数", 16, 1024, 64)
@@ -342,20 +344,20 @@ def _batchnorm_analysis(analyzer):
 
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("参数量", f"{result['parameters']['total']:,}")
     with col2:
-        st.metric("FLOPs", result['flops']['flops_readable'])
+        st.metric("FLOPs", result["flops"]["flops_readable"])
 
 
 def _layernorm_analysis(analyzer):
     """层归一化分析"""
     st.markdown("### 📏 LayerNorm 层归一化分析")
-    
+
     normalized_shape = st.number_input("归一化维度", 64, 2048, 512)
-    
+
     # 假设输入形状
     input_shape = (normalized_shape, 128)  # (d_model, seq_len)
 
@@ -363,9 +365,9 @@ def _layernorm_analysis(analyzer):
 
     st.markdown("---")
     st.markdown("### 📊 分析结果")
-    
+
     col1, col2 = st.columns(2)
     with col1:
         st.metric("参数量", f"{result['parameters']['total']:,}")
     with col2:
-        st.metric("FLOPs", result['flops']['flops_readable'])
+        st.metric("FLOPs", result["flops"]["flops_readable"])

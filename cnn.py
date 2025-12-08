@@ -9,6 +9,12 @@ from scipy import signal
 from simple_latex import display_latex
 
 from utils.visualization import ChartBuilder, MathVisualization
+from utils.input_config import (
+    render_input_config,
+    calculate_conv_output_shape,
+    calculate_output_size,
+)
+from utils.layer_params import render_conv2d_params, render_activation_selector
 
 
 # 辅助函数：生成不同类型的图案
@@ -64,10 +70,40 @@ def cnn_tab(CHINESE_SUPPORTED):
     """CNN标签页内容"""
 
     st.header("🔄 CNN卷积操作数学原理")
-    
+
     # 初始化图表工具
     chart_builder = ChartBuilder()
     math_viz = MathVisualization()
+
+    # ==========================================
+    # 输入和层参数配置（新增）
+    # ==========================================
+    st.markdown("### ⚙️ 配置选项")
+    tab1, tab2 = st.tabs(["📐 输入配置", "🔧 层参数"])
+    
+    with tab1:
+        st.markdown("配置用于计算示例的输入形状")
+        input_shape = render_input_config(
+            default_preset="CIFAR-10 (32×32)",
+            key_prefix="cnn_input",
+            show_batch_size=False,
+            show_description=True
+        )
+        batch_size, channels, img_height, img_width = input_shape
+    
+    with tab2:
+        st.markdown("配置卷积层和激活函数参数")
+        conv_params = render_conv2d_params(
+            key_prefix="cnn_conv",
+            default_kernel_size=3,
+            default_stride=1,
+            default_padding=1,
+            show_advanced=False  # 改为 False，避免嵌套 expander
+        )
+        activation_params = render_activation_selector(
+            key_prefix="cnn_activation",
+            default="ReLU"
+        )
 
     # ==========================================
     # 第一部分：核心概念与直观理解
@@ -136,10 +172,7 @@ def cnn_tab(CHINESE_SUPPORTED):
 
         # 显示输入和卷积核
         fig_input = chart_builder.create_heatmap(
-            demo_input_image, 
-            title="输入图像",
-            colorscale="gray",
-            height=250
+            demo_input_image, title="输入图像", colorscale="gray", height=250
         )
         chart_builder.display_chart(fig_input)
 
@@ -148,7 +181,7 @@ def cnn_tab(CHINESE_SUPPORTED):
             demo_kernel,
             title=f"{selected_kernel_type}检测器",
             colorscale="RdBu",
-            height=200
+            height=200,
         )
         chart_builder.display_chart(fig_kernel)
 
@@ -168,10 +201,7 @@ def cnn_tab(CHINESE_SUPPORTED):
         # 显示卷积结果
         st.markdown("**卷积结果**")
         fig_result = chart_builder.create_heatmap(
-            conv_result, 
-            title="卷积输出",
-            colorscale="viridis",
-            height=250
+            conv_result, title="卷积输出", colorscale="viridis", height=250
         )
         chart_builder.display_chart(fig_result)
 
@@ -237,13 +267,12 @@ def cnn_tab(CHINESE_SUPPORTED):
             title="卷积核大小 vs 输出尺寸",
             x_title="卷积核大小",
             y_title="输出尺寸",
-            height=300
+            height=300,
         )
-        
+
         # 添加文本标签
         fig_kernel_size.update_traces(
-            text=[f"{out}×{out}" for out in output_sizes],
-            textposition="top center"
+            text=[f"{out}×{out}" for out in output_sizes], textposition="top center"
         )
         chart_builder.display_chart(fig_kernel_size)
 
@@ -355,29 +384,66 @@ def cnn_tab(CHINESE_SUPPORTED):
 
         with col_example:
             st.markdown("**实际计算示例**")
-            example_input_size = 32
-            example_kernel_size = 3
-            example_stride = 1
-            example_padding = 1
 
-            h_out = (
-                example_input_size + 2 * example_padding - example_kernel_size
-            ) // example_stride + 1
+            # 使用动态示例生成器
+            from utils.example_generator import get_dynamic_example
 
-            st.markdown(
-                f"""
-            **给定参数**:
-            - 输入尺寸: {example_input_size} $$ \\times $$  {example_input_size}
-            - 卷积核: {example_kernel_size} $$ \\times $$ {example_kernel_size}
-            - 步长: {example_stride}
-            - 填充: {example_padding}
-            
-            **计算过程**:
-            $$ H_{{out}} = \\left\\lfloor \\frac{{H_{{in}} + 2P - K}}{{S}} \\right \\rfloor + 1  \\   \\frac{{{example_input_size} + 2 \\times {example_padding} - {example_kernel_size}}}{{{example_stride}}} + 1 = {{h_out}} $$
-            
-            **输出尺寸**: {h_out} $$ \\times $$ {h_out}
-            """
-            )
+            try:
+                example = get_dynamic_example("cnn")
+
+                st.markdown(
+                    f"""
+                **给定参数** (基于您的当前选择):
+                - 输入尺寸: {example['input_size']} $ \\times $  {example['input_size']}
+                - 卷积核: {example['kernel_size']} $ \\times $ {example['kernel_size']}
+                - 步长: {example['stride']}
+                - 填充: {example['padding']}
+                
+                **计算过程**:
+                {example['calculation_formula']}
+                
+                **输出尺寸**: {example['output_size']} $ \\times $ {example['output_size']}
+                """
+                )
+            except Exception as e:
+                # 如果动态生成失败，使用用户配置的参数
+                example_input_size = img_height
+                example_kernel_size = conv_params['kernel_size']
+                example_stride = conv_params['stride']
+                example_padding = conv_params['padding']
+
+                h_out = calculate_output_size(
+                    example_input_size,
+                    example_kernel_size,
+                    example_stride,
+                    example_padding,
+                )
+
+                st.markdown(
+                    f"""
+                **给定参数** (基于当前配置):
+                - 输入尺寸: {example_input_size} $ \\times $  {example_input_size}
+                - 卷积核: {example_kernel_size} $ \\times $ {example_kernel_size}
+                - 步长: {example_stride}
+                - 填充: {example_padding}
+                
+                **计算过程**:
+                $ H_{{out}} = \\left\\lfloor \\frac{{H_{{in}} + 2P - K}}{{S}} \\right\\rfloor + 1 = \\frac{{{example_input_size} + 2 \\times {example_padding} - {example_kernel_size}}}{{{example_stride}}} + 1 = {h_out} $
+                
+                **输出尺寸**: {h_out} $ \\times $ {h_out}
+                
+                💡 **提示**: 在上方"⚙️ 配置选项"中可以调整所有参数
+                """
+                )
+                
+                # 显示参数影响
+                st.info(f"""
+                **参数影响分析**:
+                - 卷积核越大 → 感受野越大，但计算量也越大
+                - 步长越大 → 输出尺寸越小，下采样更激进
+                - 填充越大 → 边界信息保留更多
+                - 当前激活函数: {activation_params['type']}
+                """)
 
     # ==========================================
     # 第五部分：手动计算演示
@@ -385,15 +451,25 @@ def cnn_tab(CHINESE_SUPPORTED):
     st.markdown("---")
     st.markdown("### 🧮 手动计算演示")
 
-    # 定义用于手动计算演示的参数
-    kernel_size = 3
-    stride = 1
-    padding = 0
+    # 使用动态示例生成器
+    from utils.example_generator import get_dynamic_example
 
-    # 创建示例输入和卷积核
-    input_size = 5
-    input_matrix = np.random.randn(input_size, input_size).round(2)
-    kernel = np.random.randn(kernel_size, kernel_size).round(2)
+    try:
+        example = get_dynamic_example("cnn")
+        kernel_size = example["kernel_size"]
+        stride = example["stride"]
+        padding = example["padding"]
+        input_size = example["input_size"]
+        input_matrix = example["input_matrix"]
+        kernel = example["kernel"]
+    except Exception as e:
+        # 如果动态生成失败，使用默认参数
+        kernel_size = 3
+        stride = 1
+        padding = 0
+        input_size = 5
+        input_matrix = np.random.randn(input_size, input_size).round(2)
+        kernel = np.random.randn(kernel_size, kernel_size).round(2)
 
     col1, col2 = st.columns([1, 1])
 

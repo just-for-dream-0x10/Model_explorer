@@ -10,14 +10,14 @@ from .layer_analyzer import LayerAnalyzer
 from .network_analysis import (
     full_network_analysis,
     predefined_network_analysis,
-    custom_network_analysis
+    custom_network_analysis,
 )
 from .main_tab import params_calculator_tab
 
 __all__ = [
-    'LayerAnalyzer',
-    'full_network_analysis',
-    'predefined_network_analysis', 
-    'custom_network_analysis',
-    'params_calculator_tab'
+    "LayerAnalyzer",
+    "full_network_analysis",
+    "predefined_network_analysis",
+    "custom_network_analysis",
+    "params_calculator_tab",
 ]

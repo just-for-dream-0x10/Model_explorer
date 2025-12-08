@@ -9,4 +9,4 @@ Version: 1.0.0
 from .chart_utils import ChartBuilder
 from .plot_helpers import PlotHelper, NetworkVisualization, MathVisualization
 
-__all__ = ['ChartBuilder', 'PlotHelper', 'NetworkVisualization', 'MathVisualization']
+__all__ = ["ChartBuilder", "PlotHelper", "NetworkVisualization", "MathVisualization"]

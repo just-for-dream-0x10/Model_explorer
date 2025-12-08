@@ -23,6 +23,8 @@ from tabs.architecture_comparison import architecture_comparison_tab
 from tabs.memory_analysis import memory_analysis_tab
 from tabs.stability_diagnosis import stability_diagnosis_tab
 from tabs.architecture_designer import architecture_designer_tab
+from tabs.moe_analysis import moe_analysis_tab
+from tabs.model_pruning import model_pruning_tab
 from cnn import cnn_tab
 from gnn import gnn_tab
 from rnn_lstm import rnn_lstm_tab
@@ -76,10 +78,10 @@ category = st.sidebar.radio(
     "选择分类" if CHINESE_SUPPORTED else "Select Category",
     [
         "🔧 基础工具" if CHINESE_SUPPORTED else "🔧 Basic Tools",
-        "🏗️ 经典架构" if CHINESE_SUPPORTED else "🏗️ Classic Architectures", 
+        "🏗️ 经典架构" if CHINESE_SUPPORTED else "🏗️ Classic Architectures",
         "🎯 深度优化" if CHINESE_SUPPORTED else "🎯 Deep Optimization",
-        "🚀 现代架构" if CHINESE_SUPPORTED else "🚀 Modern Architectures"
-    ]
+        "🚀 现代架构" if CHINESE_SUPPORTED else "🚀 Modern Architectures",
+    ],
 )
 
 # 根据分类显示模块列表
@@ -91,25 +93,27 @@ if CHINESE_SUPPORTED:
             "⚠️ 数值稳定性诊断": "stability_diagnosis",
             "🎨 架构设计工作台": "architecture_designer",
             "📐 数学推导工具": "math_derivation",
-            "🎮 交互实验室": "interactive_lab"
+            "🎮 交互实验室": "interactive_lab",
         }
     elif category == "🏗️ 经典架构":
         module_options = {
             "🖼️ CNN卷积数学": "cnn",
             "🕸️ GNN图神经网络": "gnn",
             "🔁 RNN/LSTM时序网络": "rnn_lstm",
-            "🔬 反向传播原理": "backpropagation"
+            "🔬 反向传播原理": "backpropagation",
         }
     elif category == "🎯 深度优化":
         module_options = {
             "🏛️ 失败案例博物馆": "failure_museum",
             "🏗️ ResNet残差分析": "resnet_analysis",
-            "🔧 归一化层对比": "normalization"
+            "🔧 归一化层对比": "normalization",
         }
     else:  # 🚀 现代架构
         module_options = {
             "🔍 Vision Transformer分析": "vit_analysis",
-            "🔬 架构对比实验室": "architecture_comparison"
+            "🔬 架构对比实验室": "architecture_comparison",
+            "🧠 MoE专家混合分析": "moe_analysis",
+            "✂️ 模型剪枝分析": "model_pruning",
         }
 else:
     if category == "🔧 Basic Tools":
@@ -119,31 +123,32 @@ else:
             "⚠️ Stability Diagnosis": "stability_diagnosis",
             "🎨 Architecture Designer": "architecture_designer",
             "📐 Math Derivation": "math_derivation",
-            "🎮 Interactive Lab": "interactive_lab"
+            "🎮 Interactive Lab": "interactive_lab",
         }
     elif category == "🏗️ Classic Architectures":
         module_options = {
             "🖼️ CNN": "cnn",
             "🕸️ GNN": "gnn",
             "🔁 RNN/LSTM": "rnn_lstm",
-            "🔬 Backpropagation": "backpropagation"
+            "🔬 Backpropagation": "backpropagation",
         }
     elif category == "🎯 Deep Optimization":
         module_options = {
             "🏛️ Failure Museum": "failure_museum",
             "🏗️ ResNet Analysis": "resnet_analysis",
-            "🔧 Normalization": "normalization"
+            "🔧 Normalization": "normalization",
         }
     else:  # 🚀 Modern Architectures
         module_options = {
             "🔍 ViT Analysis": "vit_analysis",
-            "🔬 Architecture Lab": "architecture_comparison"
+            "🔬 Architecture Lab": "architecture_comparison",
+            "🧠 MoE Analysis": "moe_analysis",
+            "✂️ Model Pruning": "model_pruning",
         }
 
 # 模块选择
 selected_module_name = st.sidebar.selectbox(
-    "选择模块" if CHINESE_SUPPORTED else "Select Module",
-    list(module_options.keys())
+    "选择模块" if CHINESE_SUPPORTED else "Select Module", list(module_options.keys())
 )
 
 selected_module = module_options[selected_module_name]
@@ -152,7 +157,11 @@ selected_module = module_options[selected_module_name]
 st.sidebar.markdown("---")
 
 # 显示当前模块信息
-st.sidebar.info(f"📍 当前模块：{selected_module_name}" if CHINESE_SUPPORTED else f"📍 Current: {selected_module_name}")
+st.sidebar.info(
+    f"📍 当前模块：{selected_module_name}"
+    if CHINESE_SUPPORTED
+    else f"📍 Current: {selected_module_name}"
+)
 
 # ==========================================
 # 根据选择的模块显示内容
@@ -186,7 +195,11 @@ elif selected_module == "normalization":
 elif selected_module == "vit_analysis":
     vit_analysis_tab(CHINESE_SUPPORTED)
 elif selected_module == "architecture_comparison":
-    architecture_comparison_tab(CHINESE_SUPPORTED)
+    architecture_comparison_tab(selected_module)
+elif selected_module == "moe_analysis":
+    moe_analysis_tab(CHINESE_SUPPORTED)
+elif selected_module == "model_pruning":
+    model_pruning_tab(CHINESE_SUPPORTED)
 
 # ==========================================
 # 页脚

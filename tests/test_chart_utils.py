@@ -26,20 +26,18 @@ class TestChartBuilder:
         title = "测试图表"
 
         fig = self.chart_builder.create_line_chart(
-            x_data=x_data,
-            y_data=y_data,
-            title=title
+            x_data=x_data, y_data=y_data, title=title
         )
 
         # 验证返回的是Figure对象
         assert isinstance(fig, go.Figure)
-        
+
         # 验证数据轨迹数量
         assert len(fig.data) == 1
-        
+
         # 验证标题
         assert fig.layout.title.text == title
-        
+
         # 验证数据
         assert list(fig.data[0].x) == x_data
         assert list(fig.data[0].y) == y_data
@@ -52,15 +50,12 @@ class TestChartBuilder:
         title = "多系列图表"
 
         fig = self.chart_builder.create_line_chart(
-            x_data=x_data,
-            y_data=y_data,
-            title=title,
-            line_names=line_names
+            x_data=x_data, y_data=y_data, title=title, line_names=line_names
         )
 
         # 验证数据轨迹数量
         assert len(fig.data) == 2
-        
+
         # 验证轨迹名称
         assert fig.data[0].name == "平方"
         assert fig.data[1].name == "线性"
@@ -72,17 +67,15 @@ class TestChartBuilder:
         title = "柱状图测试"
 
         fig = self.chart_builder.create_bar_chart(
-            x_data=x_data,
-            y_data=y_data,
-            title=title
+            x_data=x_data, y_data=y_data, title=title
         )
 
         # 验证返回的是Figure对象
         assert isinstance(fig, go.Figure)
-        
+
         # 验证数据轨迹数量
         assert len(fig.data) == 1
-        
+
         # 验证图表类型
         assert fig.data[0].type == "bar"
 
@@ -91,17 +84,14 @@ class TestChartBuilder:
         data = np.random.rand(10, 10)
         title = "热力图测试"
 
-        fig = self.chart_builder.create_heatmap(
-            data=data,
-            title=title
-        )
+        fig = self.chart_builder.create_heatmap(data=data, title=title)
 
         # 验证返回的是Figure对象
         assert isinstance(fig, go.Figure)
-        
+
         # 验证数据轨迹数量
         assert len(fig.data) == 1
-        
+
         # 验证图表类型
         assert fig.data[0].type == "heatmap"
 
@@ -112,17 +102,15 @@ class TestChartBuilder:
         title = "饼图测试"
 
         fig = self.chart_builder.create_pie_chart(
-            labels=labels,
-            values=values,
-            title=title
+            labels=labels, values=values, title=title
         )
 
         # 验证返回的是Figure对象
         assert isinstance(fig, go.Figure)
-        
+
         # 验证数据轨迹数量
         assert len(fig.data) == 1
-        
+
         # 验证图表类型
         assert fig.data[0].type == "pie"
 
@@ -133,60 +121,59 @@ class TestChartBuilder:
         title = "散点图测试"
 
         fig = self.chart_builder.create_scatter_plot(
-            x_data=x_data,
-            y_data=y_data,
-            title=title
+            x_data=x_data, y_data=y_data, title=title
         )
 
         # 验证返回的是Figure对象
         assert isinstance(fig, go.Figure)
-        
+
         # 验证数据轨迹数量
         assert len(fig.data) == 1
-        
+
         # 验证图表类型
         assert fig.data[0].type == "scatter"
 
     def test_default_colors(self):
         """测试默认颜色配置"""
         colors = self.chart_builder.colors
-        
+
         # 验证颜色列表不为空
         assert len(colors) > 0
-        
+
         # 验证颜色格式
         for color in colors:
             assert isinstance(color, str)
-            assert color.startswith('#')
+            assert color.startswith("#")
 
     def test_default_layout(self):
         """测试默认布局配置"""
         layout = self.chart_builder.layout_config
-        
+
         # 验证必要的布局属性
-        assert 'font' in layout
-        assert 'margin' in layout
-        assert 'showlegend' in layout
+        assert "font" in layout
+        assert "margin" in layout
+        assert "showlegend" in layout
 
     def test_chart_consistency(self):
         """测试图表一致性"""
         # 创建多个图表，确保样式一致
         fig1 = self.chart_builder.create_line_chart([1, 2], [1, 2], "图1")
         fig2 = self.chart_builder.create_bar_chart(["A", "B"], [1, 2], "图2")
-        
+
         # 验证字体设置一致
         assert fig1.layout.font == fig2.layout.font
-        
+
         # 验证边距设置一致
         assert fig1.layout.margin == fig2.layout.margin
 
-    @pytest.mark.parametrize("chart_type", [
-        "line_chart", "bar_chart", "heatmap", "pie_chart", "scatter_plot"
-    ])
+    @pytest.mark.parametrize(
+        "chart_type",
+        ["line_chart", "bar_chart", "heatmap", "pie_chart", "scatter_plot"],
+    )
     def test_chart_creation_methods(self, chart_type):
         """参数化测试各种图表创建方法"""
         method = getattr(self.chart_builder, f"create_{chart_type}")
-        
+
         if chart_type == "line_chart":
             fig = method([1, 2, 3], [1, 2, 3], "测试")
         elif chart_type == "bar_chart":
@@ -197,7 +184,7 @@ class TestChartBuilder:
             fig = method(["A", "B"], [1, 2], "测试")
         elif chart_type == "scatter_plot":
             fig = method([1, 2], [1, 2], "测试")
-        
+
         # 验证所有方法都返回Figure对象
         assert isinstance(fig, go.Figure)
         assert fig.layout.title.text == "测试"
@@ -207,7 +194,7 @@ class TestChartBuilder:
         # 测试空数据
         with pytest.raises(ValueError):
             self.chart_builder.create_line_chart([], [], "空数据测试")
-        
+
         # 测试长度不匹配的数据
         with pytest.raises(ValueError):
             self.chart_builder.create_line_chart([1, 2], [1], "长度不匹配")
@@ -217,7 +204,7 @@ class TestChartBuilder:
         fig = self.chart_builder.create_line_chart(
             [1, 2, 3], [1, 2, 3], "测试", height=500
         )
-        
+
         # 验证高度设置正确
         assert fig.layout.height == 500
 
@@ -225,14 +212,11 @@ class TestChartBuilder:
         """测试自定义颜色"""
         custom_colors = ["#FF0000", "#00FF00", "#0000FF"]
         self.chart_builder.colors = custom_colors
-        
+
         fig = self.chart_builder.create_line_chart(
-            [[1, 2], [1, 2]], 
-            [[1, 2], [1, 2]], 
-            "测试",
-            line_names=["系列1", "系列2"]
+            [[1, 2], [1, 2]], [[1, 2], [1, 2]], "测试", line_names=["系列1", "系列2"]
         )
-        
+
         # 验证使用了自定义颜色
         assert len(fig.data) == 2
         # 注意：实际颜色可能因Plotly内部处理而略有不同
@@ -240,10 +224,10 @@ class TestChartBuilder:
     def test_display_chart_simulation(self):
         """模拟测试图表显示功能"""
         fig = self.chart_builder.create_line_chart([1, 2], [1, 2], "测试")
-        
+
         # 验证图表对象可以正常访问属性
-        assert hasattr(fig, 'data')
-        assert hasattr(fig, 'layout')
+        assert hasattr(fig, "data")
+        assert hasattr(fig, "layout")
         assert len(fig.data) > 0
 
 
