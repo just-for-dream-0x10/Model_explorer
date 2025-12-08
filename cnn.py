@@ -80,17 +80,17 @@ def cnn_tab(CHINESE_SUPPORTED):
     # ==========================================
     st.markdown("### ⚙️ 配置选项")
     tab1, tab2 = st.tabs(["📐 输入配置", "🔧 层参数"])
-    
+
     with tab1:
         st.markdown("配置用于计算示例的输入形状")
         input_shape = render_input_config(
             default_preset="CIFAR-10 (32×32)",
             key_prefix="cnn_input",
             show_batch_size=False,
-            show_description=True
+            show_description=True,
         )
         batch_size, channels, img_height, img_width = input_shape
-    
+
     with tab2:
         st.markdown("配置卷积层和激活函数参数")
         conv_params = render_conv2d_params(
@@ -98,11 +98,10 @@ def cnn_tab(CHINESE_SUPPORTED):
             default_kernel_size=3,
             default_stride=1,
             default_padding=1,
-            show_advanced=False  # 改为 False，避免嵌套 expander
+            show_advanced=False,  # 改为 False，避免嵌套 expander
         )
         activation_params = render_activation_selector(
-            key_prefix="cnn_activation",
-            default="ReLU"
+            key_prefix="cnn_activation", default="ReLU"
         )
 
     # ==========================================
@@ -408,9 +407,9 @@ def cnn_tab(CHINESE_SUPPORTED):
             except Exception as e:
                 # 如果动态生成失败，使用用户配置的参数
                 example_input_size = img_height
-                example_kernel_size = conv_params['kernel_size']
-                example_stride = conv_params['stride']
-                example_padding = conv_params['padding']
+                example_kernel_size = conv_params["kernel_size"]
+                example_stride = conv_params["stride"]
+                example_padding = conv_params["padding"]
 
                 h_out = calculate_output_size(
                     example_input_size,
@@ -435,15 +434,17 @@ def cnn_tab(CHINESE_SUPPORTED):
                 💡 **提示**: 在上方"⚙️ 配置选项"中可以调整所有参数
                 """
                 )
-                
+
                 # 显示参数影响
-                st.info(f"""
+                st.info(
+                    f"""
                 **参数影响分析**:
                 - 卷积核越大 → 感受野越大，但计算量也越大
                 - 步长越大 → 输出尺寸越小，下采样更激进
                 - 填充越大 → 边界信息保留更多
                 - 当前激活函数: {activation_params['type']}
-                """)
+                """
+                )
 
     # ==========================================
     # 第五部分：手动计算演示

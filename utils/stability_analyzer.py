@@ -445,30 +445,29 @@ if __name__ == "__main__":
 
 # ==================== Phase 3 新增功能 ====================
 
+
 def detect_gradient_flow_realtime(
-    model: nn.Module,
-    sample_input: torch.Tensor,
-    loss_fn: Optional[nn.Module] = None
+    model: nn.Module, sample_input: torch.Tensor, loss_fn: Optional[nn.Module] = None
 ) -> Dict[str, Any]:
     """
     实时检测梯度流动情况
-    
+
     参数:
         model: 神经网络模型
         sample_input: 样本输入
         loss_fn: 损失函数（如果为None，使用输出的sum）
-    
+
     返回:
         包含梯度统计和诊断信息的字典
     """
     model.train()
-    
+
     # 清除之前的梯度
     model.zero_grad()
-    
+
     # 前向传播
     output = model(sample_input)
-    
+
     # 计算损失
     if loss_fn is not None:
         if output.dim() > 1 and output.size(-1) > 1:
@@ -479,15 +478,15 @@ def detect_gradient_flow_realtime(
             loss = output.sum()
     else:
         loss = output.sum()
-    
+
     # 反向传播
     loss.backward()
-    
+
     # 收集梯度信息
     gradient_info = {}
     gradient_norms = {}
     layer_gradients = {}
-    
+
     for name, param in model.named_parameters():
         if param.grad is not None:
             grad = param.grad.detach()
@@ -495,196 +494,200 @@ def detect_gradient_flow_realtime(
             grad_mean = grad.mean().item()
             grad_std = grad.std().item()
             grad_max = grad.abs().max().item()
-            
+
             gradient_norms[name] = grad_norm
             layer_gradients[name] = {
-                'norm': grad_norm,
-                'mean': grad_mean,
-                'std': grad_std,
-                'max': grad_max,
-                'shape': tuple(grad.shape),
-                'has_nan': torch.isnan(grad).any().item(),
-                'has_inf': torch.isinf(grad).any().item()
+                "norm": grad_norm,
+                "mean": grad_mean,
+                "std": grad_std,
+                "max": grad_max,
+                "shape": tuple(grad.shape),
+                "has_nan": torch.isnan(grad).any().item(),
+                "has_inf": torch.isinf(grad).any().item(),
             }
-    
+
     # 检测梯度问题
     vanishing_threshold = 1e-7
     exploding_threshold = 100.0
-    
+
     vanishing_layers = {
-        k: v for k, v in gradient_norms.items() 
-        if v < vanishing_threshold and v > 0
+        k: v for k, v in gradient_norms.items() if v < vanishing_threshold and v > 0
     }
-    
+
     exploding_layers = {
-        k: v for k, v in gradient_norms.items() 
-        if v > exploding_threshold
+        k: v for k, v in gradient_norms.items() if v > exploding_threshold
     }
-    
+
     nan_inf_layers = {
-        k: v for k, v in layer_gradients.items()
-        if v['has_nan'] or v['has_inf']
+        k: v for k, v in layer_gradients.items() if v["has_nan"] or v["has_inf"]
     }
-    
+
     # 计算统计信息
     if gradient_norms:
         grad_norms_list = list(gradient_norms.values())
-        gradient_info['statistics'] = {
-            'mean_norm': np.mean(grad_norms_list),
-            'std_norm': np.std(grad_norms_list),
-            'min_norm': np.min(grad_norms_list),
-            'max_norm': np.max(grad_norms_list),
-            'median_norm': np.median(grad_norms_list)
+        gradient_info["statistics"] = {
+            "mean_norm": np.mean(grad_norms_list),
+            "std_norm": np.std(grad_norms_list),
+            "min_norm": np.min(grad_norms_list),
+            "max_norm": np.max(grad_norms_list),
+            "median_norm": np.median(grad_norms_list),
         }
     else:
-        gradient_info['statistics'] = {}
-    
+        gradient_info["statistics"] = {}
+
     # 诊断结果
-    gradient_info['all_gradients'] = layer_gradients
-    gradient_info['gradient_norms'] = gradient_norms
-    gradient_info['vanishing'] = vanishing_layers
-    gradient_info['exploding'] = exploding_layers
-    gradient_info['nan_inf'] = nan_inf_layers
-    gradient_info['healthy'] = (
-        len(vanishing_layers) == 0 and 
-        len(exploding_layers) == 0 and 
-        len(nan_inf_layers) == 0
+    gradient_info["all_gradients"] = layer_gradients
+    gradient_info["gradient_norms"] = gradient_norms
+    gradient_info["vanishing"] = vanishing_layers
+    gradient_info["exploding"] = exploding_layers
+    gradient_info["nan_inf"] = nan_inf_layers
+    gradient_info["healthy"] = (
+        len(vanishing_layers) == 0
+        and len(exploding_layers) == 0
+        and len(nan_inf_layers) == 0
     )
-    
+
     # 生成建议
     recommendations = []
-    
+
     if vanishing_layers:
-        recommendations.append({
-            'issue': '梯度消失',
-            'affected_layers': list(vanishing_layers.keys()),
-            'severity': 'high',
-            'suggestions': [
-                '使用 ReLU 或 LeakyReLU 激活函数',
-                '使用残差连接（ResNet）',
-                '使用 BatchNorm 或 LayerNorm',
-                '减小网络深度',
-                '使用 Xavier/He 初始化'
-            ]
-        })
-    
+        recommendations.append(
+            {
+                "issue": "梯度消失",
+                "affected_layers": list(vanishing_layers.keys()),
+                "severity": "high",
+                "suggestions": [
+                    "使用 ReLU 或 LeakyReLU 激活函数",
+                    "使用残差连接（ResNet）",
+                    "使用 BatchNorm 或 LayerNorm",
+                    "减小网络深度",
+                    "使用 Xavier/He 初始化",
+                ],
+            }
+        )
+
     if exploding_layers:
-        recommendations.append({
-            'issue': '梯度爆炸',
-            'affected_layers': list(exploding_layers.keys()),
-            'severity': 'critical',
-            'suggestions': [
-                '降低学习率',
-                '使用梯度裁剪 (gradient clipping)',
-                '使用 BatchNorm',
-                '检查权重初始化',
-                '使用更小的权重初始化标准差'
-            ]
-        })
-    
+        recommendations.append(
+            {
+                "issue": "梯度爆炸",
+                "affected_layers": list(exploding_layers.keys()),
+                "severity": "critical",
+                "suggestions": [
+                    "降低学习率",
+                    "使用梯度裁剪 (gradient clipping)",
+                    "使用 BatchNorm",
+                    "检查权重初始化",
+                    "使用更小的权重初始化标准差",
+                ],
+            }
+        )
+
     if nan_inf_layers:
-        recommendations.append({
-            'issue': '数值溢出 (NaN/Inf)',
-            'affected_layers': list(nan_inf_layers.keys()),
-            'severity': 'critical',
-            'suggestions': [
-                '显著降低学习率',
-                '使用梯度裁剪',
-                '检查数据预处理（归一化）',
-                '使用混合精度训练',
-                '检查损失函数实现'
-            ]
-        })
-    
-    gradient_info['recommendations'] = recommendations
-    
+        recommendations.append(
+            {
+                "issue": "数值溢出 (NaN/Inf)",
+                "affected_layers": list(nan_inf_layers.keys()),
+                "severity": "critical",
+                "suggestions": [
+                    "显著降低学习率",
+                    "使用梯度裁剪",
+                    "检查数据预处理（归一化）",
+                    "使用混合精度训练",
+                    "检查损失函数实现",
+                ],
+            }
+        )
+
+    gradient_info["recommendations"] = recommendations
+
     return gradient_info
 
 
 def recommend_initialization(
-    layer: nn.Module,
-    layer_name: str = "",
-    activation: str = "relu"
+    layer: nn.Module, layer_name: str = "", activation: str = "relu"
 ) -> Dict[str, Any]:
     """
     推荐合适的初始化方案
-    
+
     参数:
         layer: 神经网络层
         layer_name: 层名称
         activation: 激活函数类型
-    
+
     返回:
         初始化推荐信息
     """
     layer_type = layer.__class__.__name__
     recommendation = {
-        'layer_name': layer_name or layer_type,
-        'layer_type': layer_type,
-        'activation': activation
+        "layer_name": layer_name or layer_type,
+        "layer_type": layer_type,
+        "activation": activation,
     }
-    
+
     if isinstance(layer, nn.Conv2d) or isinstance(layer, nn.Linear):
         # 根据激活函数推荐初始化
-        if activation.lower() in ['relu', 'leakyrelu', 'elu']:
-            recommendation['method'] = 'kaiming_normal'
-            recommendation['reason'] = 'ReLU系列激活函数的最佳实践'
-            recommendation['code'] = f"nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')"
-            recommendation['description'] = 'He初始化，考虑了ReLU会将负值置零的特性'
-            
-        elif activation.lower() in ['sigmoid', 'tanh']:
-            recommendation['method'] = 'xavier_uniform'
-            recommendation['reason'] = 'Sigmoid/Tanh的最佳实践'
-            recommendation['code'] = f"nn.init.xavier_uniform_(layer.weight)"
-            recommendation['description'] = 'Xavier初始化，保持方差在前向和反向传播中一致'
-            
-        elif activation.lower() in ['gelu', 'silu', 'swish']:
-            recommendation['method'] = 'xavier_normal'
-            recommendation['reason'] = '平滑激活函数的推荐方案'
-            recommendation['code'] = f"nn.init.xavier_normal_(layer.weight)"
-            recommendation['description'] = 'Xavier初始化的正态分布版本'
-            
+        if activation.lower() in ["relu", "leakyrelu", "elu"]:
+            recommendation["method"] = "kaiming_normal"
+            recommendation["reason"] = "ReLU系列激活函数的最佳实践"
+            recommendation["code"] = (
+                f"nn.init.kaiming_normal_(layer.weight, mode='fan_in', nonlinearity='relu')"
+            )
+            recommendation["description"] = "He初始化，考虑了ReLU会将负值置零的特性"
+
+        elif activation.lower() in ["sigmoid", "tanh"]:
+            recommendation["method"] = "xavier_uniform"
+            recommendation["reason"] = "Sigmoid/Tanh的最佳实践"
+            recommendation["code"] = f"nn.init.xavier_uniform_(layer.weight)"
+            recommendation["description"] = (
+                "Xavier初始化，保持方差在前向和反向传播中一致"
+            )
+
+        elif activation.lower() in ["gelu", "silu", "swish"]:
+            recommendation["method"] = "xavier_normal"
+            recommendation["reason"] = "平滑激活函数的推荐方案"
+            recommendation["code"] = f"nn.init.xavier_normal_(layer.weight)"
+            recommendation["description"] = "Xavier初始化的正态分布版本"
+
         else:
-            recommendation['method'] = 'default'
-            recommendation['reason'] = '使用PyTorch默认初始化'
-            recommendation['code'] = '# 使用默认初始化'
-            recommendation['description'] = 'PyTorch的默认uniform初始化'
-        
+            recommendation["method"] = "default"
+            recommendation["reason"] = "使用PyTorch默认初始化"
+            recommendation["code"] = "# 使用默认初始化"
+            recommendation["description"] = "PyTorch的默认uniform初始化"
+
         # 偏置初始化
-        if hasattr(layer, 'bias') and layer.bias is not None:
-            recommendation['bias_init'] = {
-                'method': 'zeros',
-                'code': 'nn.init.zeros_(layer.bias)',
-                'reason': '偏置通常初始化为0'
+        if hasattr(layer, "bias") and layer.bias is not None:
+            recommendation["bias_init"] = {
+                "method": "zeros",
+                "code": "nn.init.zeros_(layer.bias)",
+                "reason": "偏置通常初始化为0",
             }
-    
+
     elif isinstance(layer, (nn.BatchNorm2d, nn.BatchNorm1d)):
-        recommendation['method'] = 'ones_and_zeros'
-        recommendation['reason'] = 'BatchNorm的标准初始化'
-        recommendation['code'] = (
-            "nn.init.ones_(layer.weight)\n"
-            "nn.init.zeros_(layer.bias)"
+        recommendation["method"] = "ones_and_zeros"
+        recommendation["reason"] = "BatchNorm的标准初始化"
+        recommendation["code"] = (
+            "nn.init.ones_(layer.weight)\n" "nn.init.zeros_(layer.bias)"
         )
-        recommendation['description'] = 'weight(gamma)初始化为1，bias(beta)初始化为0'
-    
+        recommendation["description"] = "weight(gamma)初始化为1，bias(beta)初始化为0"
+
     elif isinstance(layer, (nn.LSTM, nn.GRU, nn.RNN)):
-        recommendation['method'] = 'orthogonal'
-        recommendation['reason'] = 'RNN的最佳实践'
-        recommendation['code'] = (
+        recommendation["method"] = "orthogonal"
+        recommendation["reason"] = "RNN的最佳实践"
+        recommendation["code"] = (
             "for name, param in layer.named_parameters():\n"
             "    if 'weight_ih' in name:\n"
             "        nn.init.xavier_uniform_(param)\n"
             "    elif 'weight_hh' in name:\n"
             "        nn.init.orthogonal_(param)"
         )
-        recommendation['description'] = '输入权重用Xavier，隐藏权重用正交初始化'
-    
+        recommendation["description"] = "输入权重用Xavier，隐藏权重用正交初始化"
+
     else:
-        recommendation['method'] = 'not_applicable'
-        recommendation['reason'] = '该层类型通常不需要特殊初始化'
-        recommendation['code'] = '# 不需要特殊初始化'
-        recommendation['description'] = f'{layer_type}层通常使用默认初始化即可'
-    
+        recommendation["method"] = "not_applicable"
+        recommendation["reason"] = "该层类型通常不需要特殊初始化"
+        recommendation["code"] = "# 不需要特殊初始化"
+        recommendation["description"] = f"{layer_type}层通常使用默认初始化即可"
+
     return recommendation
 
 
@@ -692,19 +695,19 @@ def predict_peak_memory(
     model: nn.Module,
     input_shape: Tuple[int, ...],
     batch_size: int = 1,
-    optimizer_type: str = 'adam',
-    dtype: torch.dtype = torch.float32
+    optimizer_type: str = "adam",
+    dtype: torch.dtype = torch.float32,
 ) -> Dict[str, Any]:
     """
     预测训练时的峰值内存使用
-    
+
     参数:
         model: 神经网络模型
         input_shape: 输入形状（不包含batch维度）
         batch_size: 批大小
         optimizer_type: 优化器类型 ('sgd', 'adam', 'adamw')
         dtype: 数据类型
-    
+
     返回:
         内存预测信息
     """
@@ -715,208 +718,224 @@ def predict_peak_memory(
         torch.int32: 4,
         torch.int64: 8,
     }.get(dtype, 4)
-    
+
     # 计算参数内存
     param_count = sum(p.numel() for p in model.parameters())
-    param_memory = param_count * bytes_per_element / (1024 ** 2)  # MB
-    
+    param_memory = param_count * bytes_per_element / (1024**2)  # MB
+
     # 计算梯度内存（与参数相同）
     gradient_memory = param_memory
-    
+
     # 计算优化器状态内存
-    if optimizer_type.lower() in ['adam', 'adamw']:
+    if optimizer_type.lower() in ["adam", "adamw"]:
         # Adam 需要两个状态：momentum 和 variance（每个与参数大小相同）
         optimizer_memory = param_memory * 2
-    elif optimizer_type.lower() == 'sgd':
+    elif optimizer_type.lower() == "sgd":
         # SGD with momentum 需要一个状态
         optimizer_memory = param_memory
     else:
         optimizer_memory = 0
-    
+
     # 估算前向传播激活值内存
     # 简化估算：假设每层的激活值大小逐渐减小
     try:
         # 创建样本输入
         full_input_shape = (batch_size,) + input_shape
         sample_input = torch.randn(full_input_shape, dtype=dtype)
-        
+
         # 统计激活值
         activation_memory = 0
         hooks = []
-        
+
         def hook_fn(module, input, output):
             nonlocal activation_memory
             if isinstance(output, torch.Tensor):
-                activation_memory += output.numel() * bytes_per_element / (1024 ** 2)
-        
+                activation_memory += output.numel() * bytes_per_element / (1024**2)
+
         # 注册hooks
         for module in model.modules():
             if len(list(module.children())) == 0:  # 只处理叶子模块
                 hooks.append(module.register_forward_hook(hook_fn))
-        
+
         # 前向传播
         model.eval()
         with torch.no_grad():
             _ = model(sample_input)
-        
+
         # 清理hooks
         for hook in hooks:
             hook.remove()
-        
+
     except Exception as e:
         # 如果出错，使用经验公式
         input_elements = batch_size * np.prod(input_shape)
-        activation_memory = input_elements * bytes_per_element * 10 / (1024 ** 2)  # 粗略估计
-    
+        activation_memory = (
+            input_elements * bytes_per_element * 10 / (1024**2)
+        )  # 粗略估计
+
     # 计算反向传播内存（通常是前向的2-3倍）
     backward_memory = activation_memory * 2.5
-    
+
     # 峰值内存 = 参数 + 梯度 + 优化器状态 + 前向激活 + 反向激活
     peak_memory = (
-        param_memory + 
-        gradient_memory + 
-        optimizer_memory + 
-        activation_memory + 
-        backward_memory
+        param_memory
+        + gradient_memory
+        + optimizer_memory
+        + activation_memory
+        + backward_memory
     )
-    
+
     memory_info = {
-        'total_peak': peak_memory,
-        'breakdown': {
-            'parameters': param_memory,
-            'gradients': gradient_memory,
-            'optimizer_states': optimizer_memory,
-            'forward_activations': activation_memory,
-            'backward_activations': backward_memory
+        "total_peak": peak_memory,
+        "breakdown": {
+            "parameters": param_memory,
+            "gradients": gradient_memory,
+            "optimizer_states": optimizer_memory,
+            "forward_activations": activation_memory,
+            "backward_activations": backward_memory,
         },
-        'parameter_count': param_count,
-        'batch_size': batch_size,
-        'optimizer_type': optimizer_type,
-        'dtype': str(dtype),
-        'bytes_per_element': bytes_per_element
+        "parameter_count": param_count,
+        "batch_size": batch_size,
+        "optimizer_type": optimizer_type,
+        "dtype": str(dtype),
+        "bytes_per_element": bytes_per_element,
     }
-    
+
     # 生成建议
     recommendations = []
-    
+
     if peak_memory > 1000:  # > 1GB
-        recommendations.append({
-            'issue': '内存占用较大',
-            'severity': 'medium',
-            'suggestions': [
-                f'减小批大小（当前: {batch_size}）',
-                '使用梯度累积',
-                '使用混合精度训练（AMP）',
-                '使用梯度检查点（gradient checkpointing）'
-            ]
-        })
-    
+        recommendations.append(
+            {
+                "issue": "内存占用较大",
+                "severity": "medium",
+                "suggestions": [
+                    f"减小批大小（当前: {batch_size}）",
+                    "使用梯度累积",
+                    "使用混合精度训练（AMP）",
+                    "使用梯度检查点（gradient checkpointing）",
+                ],
+            }
+        )
+
     if peak_memory > 4000:  # > 4GB
-        recommendations.append({
-            'issue': '内存占用很大',
-            'severity': 'high',
-            'suggestions': [
-                '强烈建议减小批大小',
-                '使用混合精度训练（可节省50%内存）',
-                '考虑使用模型并行',
-                '使用梯度检查点'
-            ]
-        })
-    
-    if optimizer_type.lower() in ['adam', 'adamw']:
-        recommendations.append({
-            'issue': 'Adam优化器内存开销大',
-            'severity': 'info',
-            'suggestions': [
-                f'Adam需要2倍参数内存存储状态（{optimizer_memory:.1f} MB）',
-                '可以考虑使用SGD（内存减半）',
-                '或使用Adafactor等内存优化的优化器'
-            ]
-        })
-    
-    memory_info['recommendations'] = recommendations
-    
+        recommendations.append(
+            {
+                "issue": "内存占用很大",
+                "severity": "high",
+                "suggestions": [
+                    "强烈建议减小批大小",
+                    "使用混合精度训练（可节省50%内存）",
+                    "考虑使用模型并行",
+                    "使用梯度检查点",
+                ],
+            }
+        )
+
+    if optimizer_type.lower() in ["adam", "adamw"]:
+        recommendations.append(
+            {
+                "issue": "Adam优化器内存开销大",
+                "severity": "info",
+                "suggestions": [
+                    f"Adam需要2倍参数内存存储状态（{optimizer_memory:.1f} MB）",
+                    "可以考虑使用SGD（内存减半）",
+                    "或使用Adafactor等内存优化的优化器",
+                ],
+            }
+        )
+
+    memory_info["recommendations"] = recommendations
+
     # 生成不同配置下的内存对比（简化版，避免递归）
-    memory_info['memory_comparison'] = {
-        'current': peak_memory,
-        'half_batch': peak_memory * 0.5 if batch_size > 1 else peak_memory,
-        'mixed_precision': peak_memory * 0.5,  # 混合精度约节省50%
-        'sgd_optimizer': peak_memory - optimizer_memory + param_memory  # SGD只需1倍参数内存
+    memory_info["memory_comparison"] = {
+        "current": peak_memory,
+        "half_batch": peak_memory * 0.5 if batch_size > 1 else peak_memory,
+        "mixed_precision": peak_memory * 0.5,  # 混合精度约节省50%
+        "sgd_optimizer": peak_memory
+        - optimizer_memory
+        + param_memory,  # SGD只需1倍参数内存
     }
-    
+
     return memory_info
 
 
 def analyze_numerical_stability(
-    model: nn.Module,
-    sample_input: torch.Tensor
+    model: nn.Module, sample_input: torch.Tensor
 ) -> Dict[str, Any]:
     """
     综合分析数值稳定性
-    
+
     结合梯度检测、初始化推荐和内存预测
-    
+
     参数:
         model: 神经网络模型
         sample_input: 样本输入
-    
+
     返回:
         综合分析结果
     """
     analysis = {}
-    
+
     # 1. 梯度流动检测
     try:
         gradient_info = detect_gradient_flow_realtime(model, sample_input)
-        analysis['gradient_flow'] = gradient_info
+        analysis["gradient_flow"] = gradient_info
     except Exception as e:
-        analysis['gradient_flow'] = {'error': str(e)}
-    
+        analysis["gradient_flow"] = {"error": str(e)}
+
     # 2. 初始化推荐
     initialization_recommendations = []
     for name, module in model.named_modules():
         if isinstance(module, (nn.Conv2d, nn.Linear, nn.BatchNorm2d, nn.LSTM)):
-            rec = recommend_initialization(module, name, activation='relu')
+            rec = recommend_initialization(module, name, activation="relu")
             initialization_recommendations.append(rec)
-    
-    analysis['initialization'] = initialization_recommendations
-    
+
+    analysis["initialization"] = initialization_recommendations
+
     # 3. 内存预测
     try:
         input_shape = tuple(sample_input.shape[1:])  # 去掉batch维度
         batch_size = sample_input.shape[0]
         memory_info = predict_peak_memory(model, input_shape, batch_size)
-        analysis['memory'] = memory_info
+        analysis["memory"] = memory_info
     except Exception as e:
-        analysis['memory'] = {'error': str(e)}
-    
+        analysis["memory"] = {"error": str(e)}
+
     # 4. 整体健康评分
     health_score = 100
     issues = []
-    
-    if 'gradient_flow' in analysis and not analysis['gradient_flow'].get('healthy', True):
+
+    if "gradient_flow" in analysis and not analysis["gradient_flow"].get(
+        "healthy", True
+    ):
         health_score -= 30
-        issues.append('梯度流动异常')
-    
-    if 'memory' in analysis:
-        peak_mem = analysis['memory'].get('total_peak', 0)
+        issues.append("梯度流动异常")
+
+    if "memory" in analysis:
+        peak_mem = analysis["memory"].get("total_peak", 0)
         if peak_mem > 4000:
             health_score -= 20
-            issues.append('内存占用过大')
+            issues.append("内存占用过大")
         elif peak_mem > 1000:
             health_score -= 10
-            issues.append('内存占用较大')
-    
-    analysis['overall'] = {
-        'health_score': max(0, health_score),
-        'status': 'healthy' if health_score >= 80 else ('warning' if health_score >= 60 else 'critical'),
-        'issues': issues
+            issues.append("内存占用较大")
+
+    analysis["overall"] = {
+        "health_score": max(0, health_score),
+        "status": (
+            "healthy"
+            if health_score >= 80
+            else ("warning" if health_score >= 60 else "critical")
+        ),
+        "issues": issues,
     }
-    
+
     return analysis
 
 
 # ==================== 辅助函数 ====================
+
 
 def format_memory_size(size_mb: float) -> str:
     """格式化内存大小显示"""
@@ -930,13 +949,13 @@ def format_memory_size(size_mb: float) -> str:
 
 def get_gradient_health_emoji(gradient_info: Dict[str, Any]) -> str:
     """获取梯度健康状态的emoji"""
-    if gradient_info.get('healthy', False):
+    if gradient_info.get("healthy", False):
         return "✅"
-    elif gradient_info.get('nan_inf'):
+    elif gradient_info.get("nan_inf"):
         return "🔴"
-    elif gradient_info.get('exploding'):
+    elif gradient_info.get("exploding"):
         return "🟠"
-    elif gradient_info.get('vanishing'):
+    elif gradient_info.get("vanishing"):
         return "🟡"
     else:
         return "⚪"

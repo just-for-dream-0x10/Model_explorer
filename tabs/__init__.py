@@ -12,6 +12,7 @@ from .architecture_comparison import architecture_comparison_tab
 from .memory_analysis import memory_analysis_tab
 from .stability_diagnosis import stability_diagnosis_tab
 from .architecture_designer import architecture_designer_tab
+from .single_neuron import single_neuron_tab
 
 __all__ = [
     "params_calculator_tab",
@@ -24,4 +25,5 @@ __all__ = [
     "memory_analysis_tab",
     "stability_diagnosis_tab",
     "architecture_designer_tab",
+    "single_neuron_tab",
 ]

@@ -505,17 +505,17 @@ def stability_diagnosis_tab(chinese_supported=True):
     - [ ] 使用了合适的初始化方案
     """
     )
-    
+
     # ==================== Phase 3: 新增高级功能 ====================
     st.markdown("---")
     st.markdown("## 🚀 Phase 3: 高级诊断工具")
-    
+
     tab1, tab2, tab3 = st.tabs(["🔍 实时梯度检测", "💡 初始化推荐", "💾 内存预测"])
-    
+
     with tab1:
         st.markdown("### 🔍 实时梯度检测")
         st.markdown("检测梯度消失、梯度爆炸和数值溢出问题")
-        
+
         if st.button("🚀 运行梯度检测", type="primary"):
             with st.spinner("正在分析梯度流动..."):
                 try:
@@ -525,23 +525,25 @@ def stability_diagnosis_tab(chinese_supported=True):
                         nn.ReLU(),
                         nn.Linear(256, 128),
                         nn.ReLU(),
-                        nn.Linear(128, 10)
+                        nn.Linear(128, 10),
                     )
-                    
+
                     sample_input = torch.randn(4, 100)
-                    
+
                     # 运行梯度检测
-                    gradient_info = detect_gradient_flow_realtime(test_model, sample_input)
-                    
+                    gradient_info = detect_gradient_flow_realtime(
+                        test_model, sample_input
+                    )
+
                     # 显示健康状态
-                    if gradient_info['healthy']:
+                    if gradient_info["healthy"]:
                         st.success("✅ 梯度流动健康！所有层的梯度都在正常范围内")
                     else:
                         st.error("⚠️ 检测到梯度问题！")
-                    
+
                     # 显示统计信息
                     col1, col2, col3, col4 = st.columns(4)
-                    stats = gradient_info['statistics']
+                    stats = gradient_info["statistics"]
                     with col1:
                         st.metric("平均梯度范数", f"{stats['mean_norm']:.2e}")
                     with col2:
@@ -550,60 +552,64 @@ def stability_diagnosis_tab(chinese_supported=True):
                         st.metric("最小梯度范数", f"{stats['min_norm']:.2e}")
                     with col4:
                         st.metric("标准差", f"{stats['std_norm']:.2e}")
-                    
+
                     # 显示问题层
-                    if gradient_info['vanishing']:
+                    if gradient_info["vanishing"]:
                         st.warning(f"🟡 梯度消失: {len(gradient_info['vanishing'])} 层")
                         with st.expander("查看详情"):
-                            for layer, norm in gradient_info['vanishing'].items():
+                            for layer, norm in gradient_info["vanishing"].items():
                                 st.write(f"- {layer}: 梯度范数 = {norm:.2e}")
-                    
-                    if gradient_info['exploding']:
+
+                    if gradient_info["exploding"]:
                         st.error(f"🔴 梯度爆炸: {len(gradient_info['exploding'])} 层")
                         with st.expander("查看详情"):
-                            for layer, norm in gradient_info['exploding'].items():
+                            for layer, norm in gradient_info["exploding"].items():
                                 st.write(f"- {layer}: 梯度范数 = {norm:.2e}")
-                    
-                    if gradient_info['nan_inf']:
+
+                    if gradient_info["nan_inf"]:
                         st.error(f"🔴 数值溢出: {len(gradient_info['nan_inf'])} 层")
                         with st.expander("查看详情"):
-                            for layer, info in gradient_info['nan_inf'].items():
-                                st.write(f"- {layer}: NaN={info['has_nan']}, Inf={info['has_inf']}")
-                    
+                            for layer, info in gradient_info["nan_inf"].items():
+                                st.write(
+                                    f"- {layer}: NaN={info['has_nan']}, Inf={info['has_inf']}"
+                                )
+
                     # 显示建议
-                    if gradient_info['recommendations']:
+                    if gradient_info["recommendations"]:
                         st.markdown("### 💡 修复建议")
-                        for rec in gradient_info['recommendations']:
-                            with st.expander(f"{rec['issue']} (严重性: {rec['severity']})"):
+                        for rec in gradient_info["recommendations"]:
+                            with st.expander(
+                                f"{rec['issue']} (严重性: {rec['severity']})"
+                            ):
                                 st.markdown("**受影响的层:**")
-                                for layer in rec['affected_layers'][:5]:
+                                for layer in rec["affected_layers"][:5]:
                                     st.write(f"- {layer}")
-                                if len(rec['affected_layers']) > 5:
-                                    st.write(f"- ... 还有 {len(rec['affected_layers']) - 5} 层")
-                                
+                                if len(rec["affected_layers"]) > 5:
+                                    st.write(
+                                        f"- ... 还有 {len(rec['affected_layers']) - 5} 层"
+                                    )
+
                                 st.markdown("**建议:**")
-                                for suggestion in rec['suggestions']:
+                                for suggestion in rec["suggestions"]:
                                     st.write(f"- {suggestion}")
-                
+
                 except Exception as e:
                     st.error(f"梯度检测失败: {e}")
-    
+
     with tab2:
         st.markdown("### 💡 初始化方案推荐")
         st.markdown("根据层类型和激活函数推荐最佳初始化方案")
-        
+
         col1, col2 = st.columns(2)
         with col1:
             layer_type = st.selectbox(
-                "选择层类型",
-                ["Conv2d", "Linear", "LSTM", "BatchNorm2d"]
+                "选择层类型", ["Conv2d", "Linear", "LSTM", "BatchNorm2d"]
             )
         with col2:
             activation = st.selectbox(
-                "选择激活函数",
-                ["ReLU", "LeakyReLU", "Sigmoid", "Tanh", "GELU"]
+                "选择激活函数", ["ReLU", "LeakyReLU", "Sigmoid", "Tanh", "GELU"]
             )
-        
+
         if st.button("🎯 获取推荐", type="primary"):
             # 创建测试层
             if layer_type == "Conv2d":
@@ -614,30 +620,30 @@ def stability_diagnosis_tab(chinese_supported=True):
                 test_layer = nn.LSTM(100, 256)
             else:
                 test_layer = nn.BatchNorm2d(64)
-            
+
             # 获取推荐
             rec = recommend_initialization(test_layer, layer_type, activation.lower())
-            
+
             st.success(f"✅ 推荐方法: **{rec['method']}**")
-            
+
             col1, col2 = st.columns(2)
             with col1:
                 st.info(f"**原因:**\n\n{rec['reason']}")
             with col2:
                 st.info(f"**说明:**\n\n{rec['description']}")
-            
+
             st.markdown("### 📝 代码示例")
-            st.code(rec['code'], language='python')
-            
-            if 'bias_init' in rec:
+            st.code(rec["code"], language="python")
+
+            if "bias_init" in rec:
                 st.markdown("### 偏置初始化")
-                st.code(rec['bias_init']['code'], language='python')
-                st.caption(rec['bias_init']['reason'])
-    
+                st.code(rec["bias_init"]["code"], language="python")
+                st.caption(rec["bias_init"]["reason"])
+
     with tab3:
         st.markdown("### 💾 峰值内存预测")
         st.markdown("预测训练时的内存使用，包括参数、梯度、优化器状态和激活值")
-        
+
         col1, col2, col3 = st.columns(3)
         with col1:
             batch_size = st.number_input("批大小", 1, 128, 32)
@@ -645,7 +651,7 @@ def stability_diagnosis_tab(chinese_supported=True):
             optimizer = st.selectbox("优化器", ["Adam", "SGD", "AdamW"])
         with col3:
             precision = st.selectbox("精度", ["float32", "float16", "float64"])
-        
+
         if st.button("📊 预测内存", type="primary"):
             with st.spinner("正在计算..."):
                 try:
@@ -657,73 +663,94 @@ def stability_diagnosis_tab(chinese_supported=True):
                         nn.ReLU(),
                         nn.AdaptiveAvgPool2d(1),
                         nn.Flatten(),
-                        nn.Linear(128, 10)
+                        nn.Linear(128, 10),
                     )
-                    
+
                     dtype = getattr(torch, precision)
-                    
+
                     memory_info = predict_peak_memory(
                         test_model,
                         input_shape=(3, 224, 224),
                         batch_size=batch_size,
                         optimizer_type=optimizer.lower(),
-                        dtype=dtype
+                        dtype=dtype,
                     )
-                    
+
                     # 显示总内存
-                    st.markdown(f"### 📊 预测峰值内存: **{format_memory_size(memory_info['total_peak'])}**")
-                    
+                    st.markdown(
+                        f"### 📊 预测峰值内存: **{format_memory_size(memory_info['total_peak'])}**"
+                    )
+
                     # 显示分解
                     st.markdown("#### 内存分解")
-                    breakdown = memory_info['breakdown']
-                    
+                    breakdown = memory_info["breakdown"]
+
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        st.metric("参数", format_memory_size(breakdown['parameters']))
-                        st.metric("梯度", format_memory_size(breakdown['gradients']))
+                        st.metric("参数", format_memory_size(breakdown["parameters"]))
+                        st.metric("梯度", format_memory_size(breakdown["gradients"]))
                     with col2:
-                        st.metric("优化器状态", format_memory_size(breakdown['optimizer_states']))
-                        st.metric("前向激活", format_memory_size(breakdown['forward_activations']))
+                        st.metric(
+                            "优化器状态",
+                            format_memory_size(breakdown["optimizer_states"]),
+                        )
+                        st.metric(
+                            "前向激活",
+                            format_memory_size(breakdown["forward_activations"]),
+                        )
                     with col3:
-                        st.metric("反向激活", format_memory_size(breakdown['backward_activations']))
+                        st.metric(
+                            "反向激活",
+                            format_memory_size(breakdown["backward_activations"]),
+                        )
                         st.metric("参数数量", f"{memory_info['parameter_count']:,}")
-                    
+
                     # 显示内存对比
                     st.markdown("#### 🔄 不同配置下的内存对比")
-                    comparison = memory_info['memory_comparison']
-                    
+                    comparison = memory_info["memory_comparison"]
+
                     import pandas as pd
-                    df = pd.DataFrame({
-                        '配置': ['当前配置', '减半批大小', '混合精度', 'SGD优化器'],
-                        '内存 (MB)': [
-                            comparison['current'],
-                            comparison['half_batch'],
-                            comparison['mixed_precision'],
-                            comparison['sgd_optimizer']
-                        ]
-                    })
-                    df['内存 (格式化)'] = df['内存 (MB)'].apply(format_memory_size)
-                    df['节省'] = ((df['内存 (MB)'].iloc[0] - df['内存 (MB)']) / df['内存 (MB)'].iloc[0] * 100).round(1).astype(str) + '%'
-                    
-                    st.dataframe(df[['配置', '内存 (格式化)', '节省']], use_container_width=True)
-                    
+
+                    df = pd.DataFrame(
+                        {
+                            "配置": ["当前配置", "减半批大小", "混合精度", "SGD优化器"],
+                            "内存 (MB)": [
+                                comparison["current"],
+                                comparison["half_batch"],
+                                comparison["mixed_precision"],
+                                comparison["sgd_optimizer"],
+                            ],
+                        }
+                    )
+                    df["内存 (格式化)"] = df["内存 (MB)"].apply(format_memory_size)
+                    df["节省"] = (
+                        (df["内存 (MB)"].iloc[0] - df["内存 (MB)"])
+                        / df["内存 (MB)"].iloc[0]
+                        * 100
+                    ).round(1).astype(str) + "%"
+
+                    st.dataframe(
+                        df[["配置", "内存 (格式化)", "节省"]], use_container_width=True
+                    )
+
                     # 显示建议
-                    if memory_info['recommendations']:
+                    if memory_info["recommendations"]:
                         st.markdown("### 💡 优化建议")
-                        for rec in memory_info['recommendations']:
+                        for rec in memory_info["recommendations"]:
                             severity_color = {
-                                'info': 'info',
-                                'medium': 'warning',
-                                'high': 'error'
-                            }.get(rec['severity'], 'info')
-                            
+                                "info": "info",
+                                "medium": "warning",
+                                "high": "error",
+                            }.get(rec["severity"], "info")
+
                             with st.expander(f"{rec['issue']} ({rec['severity']})"):
-                                for suggestion in rec['suggestions']:
+                                for suggestion in rec["suggestions"]:
                                     st.write(f"- {suggestion}")
-                
+
                 except Exception as e:
                     st.error(f"内存预测失败: {e}")
                     import traceback
+
                     st.code(traceback.format_exc())
 
 

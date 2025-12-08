@@ -25,6 +25,7 @@ from tabs.stability_diagnosis import stability_diagnosis_tab
 from tabs.architecture_designer import architecture_designer_tab
 from tabs.moe_analysis import moe_analysis_tab
 from tabs.model_pruning import model_pruning_tab
+from tabs.single_neuron import single_neuron_tab
 from cnn import cnn_tab
 from gnn import gnn_tab
 from rnn_lstm import rnn_lstm_tab
@@ -94,6 +95,7 @@ if CHINESE_SUPPORTED:
             "🎨 架构设计工作台": "architecture_designer",
             "📐 数学推导工具": "math_derivation",
             "🎮 交互实验室": "interactive_lab",
+            "🧬 单神经元分析": "single_neuron",
         }
     elif category == "🏗️ 经典架构":
         module_options = {
@@ -124,6 +126,7 @@ else:
             "🎨 Architecture Designer": "architecture_designer",
             "📐 Math Derivation": "math_derivation",
             "🎮 Interactive Lab": "interactive_lab",
+            "🧬 Single Neuron": "single_neuron",
         }
     elif category == "🏗️ Classic Architectures":
         module_options = {
@@ -178,6 +181,8 @@ elif selected_module == "math_derivation":
     math_derivation_tab()
 elif selected_module == "interactive_lab":
     interactive_lab_tab(CHINESE_SUPPORTED)
+elif selected_module == "single_neuron":
+    single_neuron_tab(CHINESE_SUPPORTED)
 elif selected_module == "cnn":
     cnn_tab(CHINESE_SUPPORTED)
 elif selected_module == "gnn":
