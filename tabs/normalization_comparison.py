@@ -153,16 +153,16 @@ def normalization_comparison_tab(CHINESE_SUPPORTED):
         - 所有方法都将数据调整到均值≈0、标准差≈1
         """
     )
-    
+
     # ==================== 适用场景分析 ====================
     st.markdown("---")
     st.markdown("### 🎯 适用场景分析与问题诊断")
-    
-    st.info("💡 根据项目定位：不仅展示\"能用\"，更要说明\"什么时候会出问题\"")
-    
+
+    st.info('💡 根据项目定位：不仅展示"能用"，更要说明"什么时候会出问题"')
+
     # 自动检测和建议
     st.markdown("#### 🔍 自动场景检测")
-    
+
     # 检测batch size
     if batch_size < 8:
         st.error(f"⚠️ **Batch Size过小**: 当前={batch_size}")
@@ -174,12 +174,12 @@ def normalization_comparison_tab(CHINESE_SUPPORTED):
         st.write("**建议**: 增加batch size或考虑GroupNorm")
     else:
         st.success(f"✅ **Batch Size合适**: 当前={batch_size}，BatchNorm可以正常工作")
-    
+
     st.markdown("---")
-    
+
     # 详细对比表格（使用markdown）
     st.markdown("#### 📊 归一化方法详细对比")
-    
+
     comparison_table = """
 | 特性 | BatchNorm | LayerNorm | GroupNorm |
 |:-----|:----------|:----------|:----------|
@@ -192,56 +192,64 @@ def normalization_comparison_tab(CHINESE_SUPPORTED):
 | **参数量** | 2C | 2C | 2C |
 | **典型应用** | ResNet, VGG | BERT, GPT | YOLO, Mask R-CNN |
 """
-    
+
     st.markdown(comparison_table)
-    
+
     st.markdown("---")
-    
+
     # 适用场景详细分析
     st.markdown("#### 🎯 何时使用哪种归一化？")
-    
+
     tab1, tab2, tab3 = st.tabs(["BatchNorm", "LayerNorm", "GroupNorm"])
-    
+
     with tab1:
         st.markdown("### BatchNorm (Batch Normalization)")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("**✅ 适用场景**")
-            st.markdown("""
+            st.markdown(
+                """
 - **CNN图像任务** (ResNet, VGG, EfficientNet)
 - **Batch size ≥ 16** (越大越稳定)
 - **训练数据分布一致** (训练=推理)
 - **需要最快速度** (计算最高效)
-            """)
-            
-            st.success(f"""
+            """
+            )
+
+            st.success(
+                f"""
 **当前配置适合BatchNorm**: {"✅ 是" if batch_size >= 16 else "❌ 否"}
 - Batch size = {batch_size}
 - 通道数 = {num_channels}
-            """)
-        
+            """
+            )
+
         with col2:
             st.markdown("**❌ 不适用场景**")
-            st.markdown("""
+            st.markdown(
+                """
 - **小batch训练** (batch < 8)
 - **序列长度变化** (NLP任务)
 - **RNN/LSTM** (时序任务)
 - **推理单张图片** (统计量不准)
 - **在线学习** (数据分布变化)
-            """)
-            
+            """
+            )
+
             if batch_size < 8:
-                st.error("""
+                st.error(
+                    """
 **❌ 当前不适合BatchNorm**
 - Batch太小会导致统计量噪声大
 - 建议切换到GroupNorm或LayerNorm
-                """)
-        
+                """
+                )
+
         st.markdown("---")
         st.markdown("**🔧 常见问题与解决方案**")
-        
+
         problems_table = """
 | 问题 | 症状 | 原因 | 解决方案 |
 |:-----|:-----|:-----|:---------|
@@ -251,9 +259,10 @@ def normalization_comparison_tab(CHINESE_SUPPORTED):
 | 速度慢 | 训练时间长 | Batch太大 | 减小batch或用混合精度 |
 """
         st.markdown(problems_table)
-        
+
         st.markdown("**📚 PyTorch实现对照**")
-        st.code("""
+        st.code(
+            """
 # PyTorch中的BatchNorm
 import torch.nn as nn
 
@@ -266,47 +275,57 @@ bn = nn.BatchNorm2d(num_features=num_channels)
 # - track_running_stats: 是否追踪统计量 (默认True)
 
 output = bn(input)
-        """, language="python")
-    
+        """,
+            language="python",
+        )
+
     with tab2:
         st.markdown("### LayerNorm (Layer Normalization)")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("**✅ 适用场景**")
-            st.markdown("""
+            st.markdown(
+                """
 - **Transformer** (BERT, GPT, ViT)
 - **RNN/LSTM** (语言模型)
 - **任何batch size** (包括1)
 - **序列长度变化** (NLP任务)
 - **在线学习** (单样本更新)
-            """)
-            
-            st.success("""
+            """
+            )
+
+            st.success(
+                """
 **LayerNorm总是适用**
 - 不依赖batch size
 - 训练=推理
 - 对序列友好
-            """)
-        
+            """
+            )
+
         with col2:
             st.markdown("**❌ 不适用场景**")
-            st.markdown("""
+            st.markdown(
+                """
 - **需要batch统计的场景** (罕见)
 - **极度追求速度的CNN** (BatchNorm更快)
-            """)
-            
-            st.info("""
+            """
+            )
+
+            st.info(
+                """
 **💡 为什么Transformer用LayerNorm？**
 - 序列长度变化 → BatchNorm不适用
 - Attention机制 → 需要稳定的归一化
 - 自回归生成 → batch=1，BatchNorm失效
-            """)
-        
+            """
+            )
+
         st.markdown("---")
         st.markdown("**🔧 常见问题与解决方案**")
-        
+
         problems_table = """
 | 问题 | 症状 | 原因 | 解决方案 |
 |:-----|:-----|:-----|:---------|
@@ -315,9 +334,10 @@ output = bn(input)
 | 梯度消失 | 深层网络不收敛 | LayerNorm位置不当 | 调整LayerNorm位置 |
 """
         st.markdown(problems_table)
-        
+
         st.markdown("**📚 PyTorch实现对照**")
-        st.code("""
+        st.code(
+            """
 # PyTorch中的LayerNorm
 import torch.nn as nn
 
@@ -333,49 +353,59 @@ ln = nn.LayerNorm(normalized_shape=num_channels)
 # - elementwise_affine: 是否学习缩放和平移 (默认True)
 
 output = ln(input)
-        """, language="python")
-    
+        """,
+            language="python",
+        )
+
     with tab3:
         st.markdown("### GroupNorm (Group Normalization)")
-        
+
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("**✅ 适用场景**")
-            st.markdown("""
+            st.markdown(
+                """
 - **小batch CNN** (目标检测、分割)
 - **Batch size < 8** 的任何任务
 - **YOLO、Mask R-CNN** 等模型
 - **折中方案** (性能接近BatchNorm但不依赖batch)
-            """)
-            
+            """
+            )
+
             is_suitable = batch_size < 16
-            st.success(f"""
+            st.success(
+                f"""
 **当前配置{"适合" if is_suitable else "可选"}GroupNorm**: {"✅" if is_suitable else "⚠️"}
 - 小batch时的最佳选择
 - 性能接近BatchNorm
 - 不依赖batch统计
-            """)
-        
+            """
+            )
+
         with col2:
             st.markdown("**❌ 不适用场景**")
-            st.markdown("""
+            st.markdown(
+                """
 - **大batch CNN** (batch≥32，用BatchNorm更好)
 - **Transformer** (直接用LayerNorm)
 - **RNN/LSTM** (用LayerNorm)
-            """)
-            
+            """
+            )
+
             if batch_size >= 32:
-                st.info("""
+                st.info(
+                    """
 **💡 Batch足够大时**
 - BatchNorm通常效果更好
 - GroupNorm是BatchNorm的近似
 - 但GroupNorm更稳定
-                """)
-        
+                """
+                )
+
         st.markdown("---")
         st.markdown("**🔧 常见问题与解决方案**")
-        
+
         problems_table = """
 | 问题 | 症状 | 原因 | 解决方案 |
 |:-----|:-----|:-----|:---------|
@@ -384,9 +414,10 @@ output = ln(input)
 | 通道数不能整除 | 报错 | 通道数 % 组数 ≠ 0 | 调整组数使其整除 |
 """
         st.markdown(problems_table)
-        
+
         st.markdown("**📚 PyTorch实现对照**")
-        st.code(f"""
+        st.code(
+            f"""
 # PyTorch中的GroupNorm
 import torch.nn as nn
 
@@ -406,14 +437,17 @@ gn = nn.GroupNorm(num_groups=32, num_channels={num_channels})
 # - eps: 防止除零 (默认1e-5)
 
 output = gn(input)
-        """, language="python")
-    
+        """,
+            language="python",
+        )
+
     st.markdown("---")
-    
+
     # 决策树
     st.markdown("#### 🌳 归一化方法选择决策树")
-    
-    st.markdown("""
+
+    st.markdown(
+        """
 ```
 开始
   │
@@ -428,12 +462,13 @@ output = gn(input)
   │                     ├─ 是 → ✅ 使用 GroupNorm 或 LayerNorm
   │                     └─ 否 → ✅ 使用 BatchNorm
 ```
-    """)
-    
+    """
+    )
+
     # 性能对比
     st.markdown("---")
     st.markdown("#### ⚡ 性能与效果对比")
-    
+
     performance_table = """
 | 指标 | BatchNorm | LayerNorm | GroupNorm |
 |:-----|:----------|:----------|:----------|
@@ -445,19 +480,20 @@ output = gn(input)
 | **推理一致性** | 🟡 需moving avg | 🟢 完全一致 | 🟢 完全一致 |
 | **实现复杂度** | 🟡 中等 | 🟢 简单 | 🟡 中等 |
 """
-    
+
     st.markdown(performance_table)
-    
+
     st.markdown("---")
-    
+
     # 实战建议
     st.markdown("#### 💡 实战建议")
-    
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
         st.markdown("**🎯 推荐组合**")
-        st.markdown("""
+        st.markdown(
+            """
 1. **ResNet/VGG (图像分类)**
    - BatchNorm + ReLU
    - Batch size ≥ 32
@@ -477,11 +513,13 @@ output = gn(input)
 5. **小batch实验**
    - GroupNorm 或 LayerNorm
    - Batch size < 16
-        """)
-    
+        """
+        )
+
     with col2:
         st.markdown("**⚠️ 常见错误**")
-        st.markdown("""
+        st.markdown(
+            """
 1. ❌ **小batch用BatchNorm**
    - Batch < 8时BatchNorm非常不稳定
    - 切换到GroupNorm
@@ -502,12 +540,14 @@ output = gn(input)
 5. ❌ **混用不同归一化**
    - 同一网络内保持一致
    - 除非有特殊设计
-        """)
-    
+        """
+        )
+
     st.markdown("---")
-    
+
     # 总结
-    st.success("""
+    st.success(
+        """
     ✅ **关键要点总结**：
     
     1. **BatchNorm**: CNN的标准选择，但需要大batch (≥16)
@@ -525,4 +565,5 @@ output = gn(input)
        - 看batch size（大 vs 小）
        - 看训练稳定性要求
        - 看推理场景（单张 vs 批量）
-    """)
+    """
+    )

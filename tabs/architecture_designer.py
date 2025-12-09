@@ -881,172 +881,198 @@ def architecture_designer_tab(chinese_supported=True):
                     st.metric("激活内存", f"{total_memory:.2f} MB")
                 with col4:
                     st.metric("输出形状", str(current_shape))
-                
+
                 # ==================== 网络稳定性诊断 ====================
                 st.markdown("---")
                 st.markdown("#### 🔬 网络稳定性诊断")
-                
+
                 stability_issues = []
-                
+
                 # 1. 检查总参数量
                 if total_params > 1e9:
-                    stability_issues.append({
-                        'status': 'error',
-                        'type': '参数量过大',
-                        'value': f'{total_params/1e9:.2f}B',
-                        'threshold': '> 1B',
-                        'icon': '🔴',
-                        'severity': 'critical',
-                        'details': {
-                            '总参数': f'{total_params:,}',
-                            '层数': len(st.session_state.layers)
-                        },
-                        'solution': [
-                            '使用深度可分离卷积减少参数',
-                            '减少全连接层神经元数量',
-                            '使用MobileNet/EfficientNet架构',
-                            '添加更多Pooling层'
-                        ],
-                        'explanation': '参数量过大会导致显存不足、训练慢、容易过拟合'
-                    })
+                    stability_issues.append(
+                        {
+                            "status": "error",
+                            "type": "参数量过大",
+                            "value": f"{total_params/1e9:.2f}B",
+                            "threshold": "> 1B",
+                            "icon": "🔴",
+                            "severity": "critical",
+                            "details": {
+                                "总参数": f"{total_params:,}",
+                                "层数": len(st.session_state.layers),
+                            },
+                            "solution": [
+                                "使用深度可分离卷积减少参数",
+                                "减少全连接层神经元数量",
+                                "使用MobileNet/EfficientNet架构",
+                                "添加更多Pooling层",
+                            ],
+                            "explanation": "参数量过大会导致显存不足、训练慢、容易过拟合",
+                        }
+                    )
                 elif total_params > 1e8:
-                    stability_issues.append({
-                        'status': 'warning',
-                        'type': '参数量较大',
-                        'value': f'{total_params/1e6:.1f}M',
-                        'threshold': '> 100M',
-                        'icon': '🟡',
-                        'severity': 'medium',
-                        'details': {
-                            '总参数': f'{total_params:,}',
-                            '估算显存': f'{total_params * 4 / 1024 / 1024:.1f} MB'
-                        },
-                        'solution': [
-                            '监控显存使用',
-                            '考虑使用混合精度训练',
-                            '适当减少batch size'
-                        ],
-                        'explanation': '参数量较大，注意显存管理'
-                    })
+                    stability_issues.append(
+                        {
+                            "status": "warning",
+                            "type": "参数量较大",
+                            "value": f"{total_params/1e6:.1f}M",
+                            "threshold": "> 100M",
+                            "icon": "🟡",
+                            "severity": "medium",
+                            "details": {
+                                "总参数": f"{total_params:,}",
+                                "估算显存": f"{total_params * 4 / 1024 / 1024:.1f} MB",
+                            },
+                            "solution": [
+                                "监控显存使用",
+                                "考虑使用混合精度训练",
+                                "适当减少batch size",
+                            ],
+                            "explanation": "参数量较大，注意显存管理",
+                        }
+                    )
                 else:
-                    stability_issues.append({
-                        'status': 'success',
-                        'type': '参数量',
-                        'value': f'{total_params/1e6:.2f}M' if total_params > 1e6 else f'{total_params:,}',
-                        'icon': '🟢',
-                        'severity': 'none'
-                    })
-                
+                    stability_issues.append(
+                        {
+                            "status": "success",
+                            "type": "参数量",
+                            "value": (
+                                f"{total_params/1e6:.2f}M"
+                                if total_params > 1e6
+                                else f"{total_params:,}"
+                            ),
+                            "icon": "🟢",
+                            "severity": "none",
+                        }
+                    )
+
                 # 2. 检查激活内存
                 if total_memory > 1000:
-                    stability_issues.append({
-                        'status': 'error',
-                        'type': '激活内存过大',
-                        'value': f'{total_memory:.1f} MB',
-                        'threshold': '> 1000 MB',
-                        'icon': '🔴',
-                        'severity': 'high',
-                        'details': {
-                            '激活内存': f'{total_memory:.1f} MB',
-                            '估算总显存': f'{total_memory * 3:.1f} MB (含梯度)'
-                        },
-                        'solution': [
-                            '减小batch size',
-                            '增加Pooling层',
-                            '使用梯度检查点(gradient checkpointing)',
-                            '减少输入图像尺寸'
-                        ],
-                        'explanation': '激活内存过大会导致OOM（显存溢出）'
-                    })
+                    stability_issues.append(
+                        {
+                            "status": "error",
+                            "type": "激活内存过大",
+                            "value": f"{total_memory:.1f} MB",
+                            "threshold": "> 1000 MB",
+                            "icon": "🔴",
+                            "severity": "high",
+                            "details": {
+                                "激活内存": f"{total_memory:.1f} MB",
+                                "估算总显存": f"{total_memory * 3:.1f} MB (含梯度)",
+                            },
+                            "solution": [
+                                "减小batch size",
+                                "增加Pooling层",
+                                "使用梯度检查点(gradient checkpointing)",
+                                "减少输入图像尺寸",
+                            ],
+                            "explanation": "激活内存过大会导致OOM（显存溢出）",
+                        }
+                    )
                 elif total_memory > 500:
-                    stability_issues.append({
-                        'status': 'warning',
-                        'type': '激活内存较大',
-                        'value': f'{total_memory:.1f} MB',
-                        'threshold': '> 500 MB',
-                        'icon': '🟡',
-                        'severity': 'medium',
-                        'solution': [
-                            '监控显存使用',
-                            '考虑减小batch size'
-                        ],
-                        'explanation': '激活内存较大，注意batch size设置'
-                    })
-                
+                    stability_issues.append(
+                        {
+                            "status": "warning",
+                            "type": "激活内存较大",
+                            "value": f"{total_memory:.1f} MB",
+                            "threshold": "> 500 MB",
+                            "icon": "🟡",
+                            "severity": "medium",
+                            "solution": ["监控显存使用", "考虑减小batch size"],
+                            "explanation": "激活内存较大，注意batch size设置",
+                        }
+                    )
+
                 # 3. 识别瓶颈层
                 if st.session_state.layers:
-                    max_params_layer = max(st.session_state.layers, key=lambda x: x.param_count)
-                    max_memory_layer = max(st.session_state.layers, key=lambda x: x.memory)
-                    
+                    max_params_layer = max(
+                        st.session_state.layers, key=lambda x: x.param_count
+                    )
+                    max_memory_layer = max(
+                        st.session_state.layers, key=lambda x: x.memory
+                    )
+
                     params_ratio = max_params_layer.param_count / (total_params + 1)
                     memory_ratio = max_memory_layer.memory / (total_memory + 1)
-                    
+
                     if params_ratio > 0.5:
-                        stability_issues.append({
-                            'status': 'warning',
-                            'type': '参数瓶颈层',
-                            'value': f'{max_params_layer.name} ({params_ratio*100:.1f}%)',
-                            'threshold': '> 50%',
-                            'icon': '🟡',
-                            'severity': 'medium',
-                            'details': {
-                                '瓶颈层': max_params_layer.name,
-                                '参数量': f'{max_params_layer.param_count:,}',
-                                '占比': f'{params_ratio*100:.1f}%'
-                            },
-                            'solution': [
-                                '减少该层的神经元数量',
-                                '使用参数分解技术',
-                                '考虑使用瓶颈结构'
-                            ],
-                            'explanation': f'{max_params_layer.name}层占用了超过一半的参数'
-                        })
-                    
+                        stability_issues.append(
+                            {
+                                "status": "warning",
+                                "type": "参数瓶颈层",
+                                "value": f"{max_params_layer.name} ({params_ratio*100:.1f}%)",
+                                "threshold": "> 50%",
+                                "icon": "🟡",
+                                "severity": "medium",
+                                "details": {
+                                    "瓶颈层": max_params_layer.name,
+                                    "参数量": f"{max_params_layer.param_count:,}",
+                                    "占比": f"{params_ratio*100:.1f}%",
+                                },
+                                "solution": [
+                                    "减少该层的神经元数量",
+                                    "使用参数分解技术",
+                                    "考虑使用瓶颈结构",
+                                ],
+                                "explanation": f"{max_params_layer.name}层占用了超过一半的参数",
+                            }
+                        )
+
                     if memory_ratio > 0.5:
-                        stability_issues.append({
-                            'status': 'warning',
-                            'type': '内存瓶颈层',
-                            'value': f'{max_memory_layer.name} ({memory_ratio*100:.1f}%)',
-                            'threshold': '> 50%',
-                            'icon': '🟡',
-                            'severity': 'medium',
-                            'details': {
-                                '瓶颈层': max_memory_layer.name,
-                                '内存': f'{max_memory_layer.memory:.2f} MB',
-                                '占比': f'{memory_ratio*100:.1f}%'
-                            },
-                            'solution': [
-                                '在该层之前添加Pooling',
-                                '减少该层的通道数',
-                                '使用深度可分离卷积'
-                            ],
-                            'explanation': f'{max_memory_layer.name}层占用了超过一半的激活内存'
-                        })
-                
+                        stability_issues.append(
+                            {
+                                "status": "warning",
+                                "type": "内存瓶颈层",
+                                "value": f"{max_memory_layer.name} ({memory_ratio*100:.1f}%)",
+                                "threshold": "> 50%",
+                                "icon": "🟡",
+                                "severity": "medium",
+                                "details": {
+                                    "瓶颈层": max_memory_layer.name,
+                                    "内存": f"{max_memory_layer.memory:.2f} MB",
+                                    "占比": f"{memory_ratio*100:.1f}%",
+                                },
+                                "solution": [
+                                    "在该层之前添加Pooling",
+                                    "减少该层的通道数",
+                                    "使用深度可分离卷积",
+                                ],
+                                "explanation": f"{max_memory_layer.name}层占用了超过一半的激活内存",
+                            }
+                        )
+
                 # 4. 检查网络深度
-                conv_count = sum(1 for c in st.session_state.layers if 'Conv' in c.layer_type)
-                fc_count = sum(1 for c in st.session_state.layers if c.layer_type == 'Linear')
-                
+                conv_count = sum(
+                    1 for c in st.session_state.layers if "Conv" in c.layer_type
+                )
+                fc_count = sum(
+                    1 for c in st.session_state.layers if c.layer_type == "Linear"
+                )
+
                 if conv_count > 50:
-                    stability_issues.append({
-                        'status': 'warning',
-                        'type': '网络过深',
-                        'value': f'{conv_count}层卷积',
-                        'threshold': '> 50层',
-                        'icon': '🟡',
-                        'severity': 'medium',
-                        'solution': [
-                            '使用残差连接（ResNet）',
-                            '使用BatchNorm稳定训练',
-                            '考虑使用DenseNet或其他skip connection'
-                        ],
-                        'explanation': '深层网络容易出现梯度消失，需要特殊设计'
-                    })
-                
+                    stability_issues.append(
+                        {
+                            "status": "warning",
+                            "type": "网络过深",
+                            "value": f"{conv_count}层卷积",
+                            "threshold": "> 50层",
+                            "icon": "🟡",
+                            "severity": "medium",
+                            "solution": [
+                                "使用残差连接（ResNet）",
+                                "使用BatchNorm稳定训练",
+                                "考虑使用DenseNet或其他skip connection",
+                            ],
+                            "explanation": "深层网络容易出现梯度消失，需要特殊设计",
+                        }
+                    )
+
                 # 显示诊断结果
                 if stability_issues:
-                    StabilityChecker.display_issues(stability_issues, 
-                                                   title="🔬 网络架构稳定性诊断")
+                    StabilityChecker.display_issues(
+                        stability_issues, title="🔬 网络架构稳定性诊断"
+                    )
                 else:
                     st.success("✅ 网络架构检查通过，未发现问题")
 

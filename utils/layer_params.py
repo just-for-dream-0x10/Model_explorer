@@ -15,6 +15,8 @@ def render_conv2d_params(
     default_stride: int = 1,
     default_padding: int = 1,
     show_advanced: bool = True,
+    show_channels: bool = True,
+    default_out_channels: int = 64,
 ) -> Dict[str, Any]:
     """
     渲染 Conv2d 层参数配置
@@ -25,46 +27,101 @@ def render_conv2d_params(
         default_stride: 默认步长
         default_padding: 默认填充
         show_advanced: 是否显示高级选项
+        show_channels: 是否显示通道数配置
+        default_out_channels: 默认输出通道数
 
     返回:
         参数字典
     """
     st.markdown("#### 🔧 卷积层参数")
 
-    col1, col2, col3 = st.columns(3)
+    if show_channels:
+        col1, col2, col3, col4 = st.columns(4)
+    else:
+        col1, col2, col3 = st.columns(3)
 
-    with col1:
-        kernel_size = st.slider(
-            "卷积核大小",
-            min_value=1,
-            max_value=7,
-            value=default_kernel_size,
-            step=2,  # 通常使用奇数
-            key=f"{key_prefix}_kernel",
-            help="卷积核的空间尺寸 (通常使用奇数，如3×3, 5×5)",
-        )
+    if show_channels:
+        with col1:
+            out_channels = st.slider(
+                "输出通道数",
+                min_value=1,
+                max_value=1024,
+                value=default_out_channels,
+                step=1,
+                key=f"{key_prefix}_out_channels",
+                help="卷积层的输出通道数（滤波器数量）",
+            )
 
-    with col2:
-        stride = st.slider(
-            "步长 (Stride)",
-            min_value=1,
-            max_value=4,
-            value=default_stride,
-            key=f"{key_prefix}_stride",
-            help="卷积核移动的步长，越大输出越小",
-        )
+        with col2:
+            kernel_size = st.slider(
+                "卷积核大小",
+                min_value=1,
+                max_value=7,
+                value=default_kernel_size,
+                step=2,  # 通常使用奇数
+                key=f"{key_prefix}_kernel",
+                help="卷积核的空间尺寸 (通常使用奇数，如3×3, 5×5)",
+            )
 
-    with col3:
-        padding = st.slider(
-            "填充 (Padding)",
-            min_value=0,
-            max_value=3,
-            value=default_padding,
-            key=f"{key_prefix}_padding",
-            help="输入周围添加的零填充层数",
-        )
+        with col3:
+            stride = st.slider(
+                "步长 (Stride)",
+                min_value=1,
+                max_value=4,
+                value=default_stride,
+                key=f"{key_prefix}_stride",
+                help="卷积核移动的步长，越大输出越小",
+            )
 
-    params = {"kernel_size": kernel_size, "stride": stride, "padding": padding}
+        with col4:
+            padding = st.slider(
+                "填充 (Padding)",
+                min_value=0,
+                max_value=3,
+                value=default_padding,
+                key=f"{key_prefix}_padding",
+                help="输入周围添加的零填充层数",
+            )
+
+        params = {
+            "out_channels": out_channels,
+            "kernel_size": kernel_size,
+            "stride": stride,
+            "padding": padding,
+        }
+    else:
+        with col1:
+            kernel_size = st.slider(
+                "卷积核大小",
+                min_value=1,
+                max_value=7,
+                value=default_kernel_size,
+                step=2,  # 通常使用奇数
+                key=f"{key_prefix}_kernel",
+                help="卷积核的空间尺寸 (通常使用奇数，如3×3, 5×5)",
+            )
+
+        with col2:
+            stride = st.slider(
+                "步长 (Stride)",
+                min_value=1,
+                max_value=4,
+                value=default_stride,
+                key=f"{key_prefix}_stride",
+                help="卷积核移动的步长，越大输出越小",
+            )
+
+        with col3:
+            padding = st.slider(
+                "填充 (Padding)",
+                min_value=0,
+                max_value=3,
+                value=default_padding,
+                key=f"{key_prefix}_padding",
+                help="输入周围添加的零填充层数",
+            )
+
+        params = {"kernel_size": kernel_size, "stride": stride, "padding": padding}
 
     # 高级选项
     if show_advanced:

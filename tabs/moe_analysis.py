@@ -170,7 +170,23 @@ def explain_moe_computation():
 
 
 def plot_expert_usage(expert_usage, expert_names=None):
-    """绘制专家使用率"""
+    """绘制专家使用率
+
+    Args:
+        expert_usage: 专家使用次数或使用率数组 (1D array)
+        expert_names: 专家名称列表（可选）
+    """
+    # 确保是1D数组
+    if hasattr(expert_usage, "ndim") and expert_usage.ndim > 1:
+        # 如果是2D数组，计算每个专家的平均使用率
+        expert_usage = expert_usage.mean(axis=1)
+
+    # 转换为numpy数组以便处理
+    if hasattr(expert_usage, "numpy"):  # torch tensor
+        expert_usage = expert_usage.numpy()
+    elif not hasattr(expert_usage, "__len__"):
+        expert_usage = [expert_usage]
+
     if expert_names is None:
         expert_names = [f"专家{i+1}" for i in range(len(expert_usage))]
 
@@ -179,7 +195,7 @@ def plot_expert_usage(expert_usage, expert_names=None):
             go.Bar(
                 x=expert_names,
                 y=expert_usage,
-                text=[f"{usage:.1%}" for usage in expert_usage],
+                text=[f"{float(usage):.1f}" for usage in expert_usage],
                 textposition="auto",
                 marker_color="lightblue",
             )

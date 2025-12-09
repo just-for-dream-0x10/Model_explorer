@@ -25,6 +25,7 @@ from utils.vit_models import (
     get_vit_info,
 )
 from utils.input_config import get_preset_shape
+from utils.example_generator import get_dynamic_example
 
 
 def visualize_patch_embedding(img_size=224, patch_size=16):

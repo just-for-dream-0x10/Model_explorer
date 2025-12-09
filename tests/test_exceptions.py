@@ -46,9 +46,9 @@ class TestCustomExceptions:
         """测试数据验证错误"""
         with pytest.raises(DataValidationError) as exc_info:
             raise DataValidationError(
-                data_name="input_shape", 
-                actual_value="(H,W,C)", 
-                expected_condition="(C,H,W)格式"
+                data_name="input_shape",
+                actual_value="(H,W,C)",
+                expected_condition="(C,H,W)格式",
             )
 
         assert "input_shape" in str(exc_info.value)

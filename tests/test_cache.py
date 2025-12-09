@@ -92,7 +92,7 @@ class TestCacheManager:
     def test_cached_decorator(self):
         """测试缓存装饰器"""
         from utils.cache import cached
-        
+
         call_count = 0
 
         @cached(ttl=60, cache_manager=self.cache)

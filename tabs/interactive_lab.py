@@ -523,66 +523,66 @@ def _activation_comparison(CHINESE_SUPPORTED):
         xaxis_title="x", yaxis_title="f'(x)", height=400, hovermode="x unified"
     )
     st.plotly_chart(fig, width="stretch", key="activation_derivatives")
-    
+
     # ==================== 激活函数饱和检测 ====================
     st.markdown("---")
     st.markdown("#### 🔬 激活函数饱和分析")
-    
+
     stability_issues = []
-    
+
     for act_name in activations:
         if act_name in activation_funcs:
             f = activation_funcs[act_name]
             y = f(x)
             dy = numerical_derivative(f, x)
-            
+
             # 检查饱和区域（导数接近0）
             saturated_ratio = np.sum(np.abs(dy) < 0.01) / len(dy)
-            
+
             if saturated_ratio > 0.5:
-                stability_issues.append({
-                    'status': 'warning',
-                    'type': f'{act_name}饱和严重',
-                    'value': f'{saturated_ratio*100:.1f}%区域饱和',
-                    'threshold': '> 50%',
-                    'icon': '🟡',
-                    'severity': 'medium',
-                    'details': {
-                        '激活函数': act_name,
-                        '饱和比例': f'{saturated_ratio*100:.1f}%',
-                        '最大导数': f'{np.max(np.abs(dy)):.4f}',
-                        '平均导数': f'{np.mean(np.abs(dy)):.4f}'
-                    },
-                    'solution': [
-                        f'避免使用{act_name}在深层网络',
-                        '使用ReLU或其变体（Leaky ReLU, ELU）',
-                        '使用GELU（Transformer默认）',
-                        '添加BatchNorm/LayerNorm'
-                    ],
-                    'explanation': f'{act_name}在大部分区域导数接近0，导致梯度消失'
-                })
+                stability_issues.append(
+                    {
+                        "status": "warning",
+                        "type": f"{act_name}饱和严重",
+                        "value": f"{saturated_ratio*100:.1f}%区域饱和",
+                        "threshold": "> 50%",
+                        "icon": "🟡",
+                        "severity": "medium",
+                        "details": {
+                            "激活函数": act_name,
+                            "饱和比例": f"{saturated_ratio*100:.1f}%",
+                            "最大导数": f"{np.max(np.abs(dy)):.4f}",
+                            "平均导数": f"{np.mean(np.abs(dy)):.4f}",
+                        },
+                        "solution": [
+                            f"避免使用{act_name}在深层网络",
+                            "使用ReLU或其变体（Leaky ReLU, ELU）",
+                            "使用GELU（Transformer默认）",
+                            "添加BatchNorm/LayerNorm",
+                        ],
+                        "explanation": f"{act_name}在大部分区域导数接近0，导致梯度消失",
+                    }
+                )
             elif saturated_ratio > 0.3:
-                stability_issues.append({
-                    'status': 'warning',
-                    'type': f'{act_name}部分饱和',
-                    'value': f'{saturated_ratio*100:.1f}%区域',
-                    'threshold': '> 30%',
-                    'icon': '🟡',
-                    'severity': 'low',
-                    'details': {
-                        '激活函数': act_name,
-                        '饱和比例': f'{saturated_ratio*100:.1f}%'
-                    },
-                    'solution': [
-                        '监控训练时的激活值分布',
-                        '考虑使用其他激活函数'
-                    ],
-                    'explanation': f'{act_name}有一定比例的饱和区域'
-                })
-    
+                stability_issues.append(
+                    {
+                        "status": "warning",
+                        "type": f"{act_name}部分饱和",
+                        "value": f"{saturated_ratio*100:.1f}%区域",
+                        "threshold": "> 30%",
+                        "icon": "🟡",
+                        "severity": "low",
+                        "details": {
+                            "激活函数": act_name,
+                            "饱和比例": f"{saturated_ratio*100:.1f}%",
+                        },
+                        "solution": ["监控训练时的激活值分布", "考虑使用其他激活函数"],
+                        "explanation": f"{act_name}有一定比例的饱和区域",
+                    }
+                )
+
     if stability_issues:
-        StabilityChecker.display_issues(stability_issues, 
-                                       title="🔬 激活函数饱和诊断")
+        StabilityChecker.display_issues(stability_issues, title="🔬 激活函数饱和诊断")
     else:
         st.success("✅ 选择的激活函数在当前范围内饱和程度较低")
 

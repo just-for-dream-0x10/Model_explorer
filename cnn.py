@@ -106,6 +106,8 @@ def cnn_tab(CHINESE_SUPPORTED):
             default_stride=1,
             default_padding=1,
             show_advanced=False,  # 改为 False，避免嵌套 expander
+            show_channels=True,  # 显示通道数配置
+            default_out_channels=64,
         )
         activation_params = render_activation_selector(
             key_prefix="cnn_activation", default="ReLU"
@@ -239,137 +241,157 @@ def cnn_tab(CHINESE_SUPPORTED):
                 st.dataframe(pd.DataFrame(demo_kernel.round(2)).style.format("{:.2f}"))
 
             st.markdown(f"**结果**: {demo_conv_result:.3f}")
-            
+
             # ==================== 数值稳定性检测 ====================
             st.markdown("---")
             st.markdown("#### 🔬 卷积数值稳定性诊断")
-            
+
             stability_issues = []
-            
+
             # 1. 检查输入数据范围
             input_check = StabilityChecker.check_activation(
                 demo_input_image.flatten(), "输入图像"
             )
             stability_issues.append(input_check)
-            
+
             # 2. 检查卷积核范数
             kernel_norm = np.linalg.norm(demo_kernel)
             if kernel_norm > 5:
-                stability_issues.append({
-                    'status': 'warning',
-                    'type': '卷积核范数过大',
-                    'value': f'{kernel_norm:.4f}',
-                    'threshold': '> 5',
-                    'icon': '🟡',
-                    'severity': 'medium',
-                    'details': {
-                        '卷积核范数': f'{kernel_norm:.4f}',
-                        '卷积核形状': f'{demo_kernel.shape}',
-                        '最大权重': f'{np.max(np.abs(demo_kernel)):.4f}'
-                    },
-                    'solution': [
-                        '使用Xavier/He初始化',
-                        '添加权重衰减（L2正则化）',
-                        '使用BatchNorm',
-                        '降低学习率'
-                    ],
-                    'explanation': '卷积核范数过大会导致输出特征图值爆炸'
-                })
-            else:
-                stability_issues.append({
-                    'status': 'success',
-                    'type': '卷积核范数',
-                    'value': f'{kernel_norm:.4f}',
-                    'icon': '🟢',
-                    'severity': 'none',
-                    'details': {
-                        '卷积核范数': f'{kernel_norm:.4f}',
-                        '卷积核形状': f'{demo_kernel.shape}'
+                stability_issues.append(
+                    {
+                        "status": "warning",
+                        "type": "卷积核范数过大",
+                        "value": f"{kernel_norm:.4f}",
+                        "threshold": "> 5",
+                        "icon": "🟡",
+                        "severity": "medium",
+                        "details": {
+                            "卷积核范数": f"{kernel_norm:.4f}",
+                            "卷积核形状": f"{demo_kernel.shape}",
+                            "最大权重": f"{np.max(np.abs(demo_kernel)):.4f}",
+                        },
+                        "solution": [
+                            "使用Xavier/He初始化",
+                            "添加权重衰减（L2正则化）",
+                            "使用BatchNorm",
+                            "降低学习率",
+                        ],
+                        "explanation": "卷积核范数过大会导致输出特征图值爆炸",
                     }
-                })
-            
+                )
+            else:
+                stability_issues.append(
+                    {
+                        "status": "success",
+                        "type": "卷积核范数",
+                        "value": f"{kernel_norm:.4f}",
+                        "icon": "🟢",
+                        "severity": "none",
+                        "details": {
+                            "卷积核范数": f"{kernel_norm:.4f}",
+                            "卷积核形状": f"{demo_kernel.shape}",
+                        },
+                    }
+                )
+
             # 3. 检查卷积输出范围
             conv_output_check = StabilityChecker.check_activation(
                 conv_result.flatten(), "卷积输出"
             )
             stability_issues.append(conv_output_check)
-            
+
             # 4. 检查逐元素乘积
             element_product = demo_window * demo_kernel
             product_max = np.max(np.abs(element_product))
             if product_max > 50:
-                stability_issues.append({
-                    'status': 'warning',
-                    'type': '逐元素乘积过大',
-                    'value': f'{product_max:.2f}',
-                    'threshold': '> 50',
-                    'icon': '🟡',
-                    'severity': 'medium',
-                    'details': {
-                        '最大乘积': f'{product_max:.2f}',
-                        '求和结果': f'{demo_conv_result:.2f}',
-                        '输入范围': f'[{np.min(demo_window):.2f}, {np.max(demo_window):.2f}]',
-                        '卷积核范围': f'[{np.min(demo_kernel):.2f}, {np.max(demo_kernel):.2f}]'
-                    },
-                    'solution': [
-                        '归一化输入（除以255或使用ImageNet标准化）',
-                        '使用BatchNorm',
-                        '减小卷积核权重（Xavier初始化）',
-                        '添加激活函数限制输出范围'
-                    ],
-                    'explanation': '输入与卷积核的乘积过大，可能导致后续激活函数饱和或溢出'
-                })
-            
+                stability_issues.append(
+                    {
+                        "status": "warning",
+                        "type": "逐元素乘积过大",
+                        "value": f"{product_max:.2f}",
+                        "threshold": "> 50",
+                        "icon": "🟡",
+                        "severity": "medium",
+                        "details": {
+                            "最大乘积": f"{product_max:.2f}",
+                            "求和结果": f"{demo_conv_result:.2f}",
+                            "输入范围": f"[{np.min(demo_window):.2f}, {np.max(demo_window):.2f}]",
+                            "卷积核范围": f"[{np.min(demo_kernel):.2f}, {np.max(demo_kernel):.2f}]",
+                        },
+                        "solution": [
+                            "归一化输入（除以255或使用ImageNet标准化）",
+                            "使用BatchNorm",
+                            "减小卷积核权重（Xavier初始化）",
+                            "添加激活函数限制输出范围",
+                        ],
+                        "explanation": "输入与卷积核的乘积过大，可能导致后续激活函数饱和或溢出",
+                    }
+                )
+
             # 5. 感受野分析
             receptive_field = demo_kernel.shape[0] * demo_kernel.shape[1]
             if demo_kernel.shape[0] < 3:
-                stability_issues.append({
-                    'status': 'warning',
-                    'type': '感受野过小',
-                    'value': f'{demo_kernel.shape[0]}×{demo_kernel.shape[1]}',
-                    'threshold': '< 3×3',
-                    'icon': '🟡',
-                    'severity': 'low',
-                    'details': {
-                        '卷积核大小': f'{demo_kernel.shape[0]}×{demo_kernel.shape[1]}',
-                        '感受野': f'{receptive_field}个像素'
-                    },
-                    'solution': [
-                        '使用3×3或更大的卷积核',
-                        '堆叠多个小卷积（如VGG）',
-                        '使用空洞卷积增大感受野'
-                    ],
-                    'explanation': '感受野太小可能无法捕获足够的空间信息'
-                })
-            
+                stability_issues.append(
+                    {
+                        "status": "warning",
+                        "type": "感受野过小",
+                        "value": f"{demo_kernel.shape[0]}×{demo_kernel.shape[1]}",
+                        "threshold": "< 3×3",
+                        "icon": "🟡",
+                        "severity": "low",
+                        "details": {
+                            "卷积核大小": f"{demo_kernel.shape[0]}×{demo_kernel.shape[1]}",
+                            "感受野": f"{receptive_field}个像素",
+                        },
+                        "solution": [
+                            "使用3×3或更大的卷积核",
+                            "堆叠多个小卷积（如VGG）",
+                            "使用空洞卷积增大感受野",
+                        ],
+                        "explanation": "感受野太小可能无法捕获足够的空间信息",
+                    }
+                )
+
             # 6. 输出尺寸检查
-            output_h = (input_size + 2*padding - kernel_size) // stride + 1
+            # 获取实际使用的参数值
+            actual_input_size = demo_input_image.shape[0]
+            actual_kernel_size = demo_kernel.shape[0]
+            actual_padding = demo_padding
+            actual_stride = demo_stride
+
+            output_h = (
+                actual_input_size + 2 * actual_padding - actual_kernel_size
+            ) // actual_stride + 1
             if output_h < 4:
-                stability_issues.append({
-                    'status': 'warning',
-                    'type': '输出尺寸过小',
-                    'value': f'{output_h}×{output_h}',
-                    'threshold': '< 4×4',
-                    'icon': '🟡',
-                    'severity': 'medium',
-                    'details': {
-                        '输出尺寸': f'{output_h}×{output_h}',
-                        '输入尺寸': f'{input_size}×{input_size}',
-                        '缩减率': f'{(1 - output_h/input_size)*100:.1f}%'
-                    },
-                    'solution': [
-                        '增加padding保持空间尺寸',
-                        '减小stride',
-                        '使用更小的卷积核',
-                        '考虑使用空洞卷积'
-                    ],
-                    'explanation': '输出尺寸过小会损失空间信息，后续层感受野受限'
-                })
-            
-            StabilityChecker.display_issues(stability_issues, 
-                                           title="🔬 卷积层稳定性诊断")
-            
-            st.info(f"""
+                stability_issues.append(
+                    {
+                        "status": "warning",
+                        "type": "输出尺寸过小",
+                        "value": f"{output_h}×{output_h}",
+                        "threshold": "< 4×4",
+                        "icon": "🟡",
+                        "severity": "medium",
+                        "details": {
+                            "输出尺寸": f"{output_h}×{output_h}",
+                            "输入尺寸": f"{actual_input_size}×{actual_input_size}",
+                            "缩减率": f"{(1 - output_h/actual_input_size)*100:.1f}%",
+                        },
+                        "solution": [
+                            "增加padding保持空间尺寸",
+                            "减小stride",
+                            "使用更小的卷积核",
+                            "考虑使用空洞卷积",
+                        ],
+                        "explanation": "输出尺寸过小会损失空间信息，后续层感受野受限",
+                    }
+                )
+
+            StabilityChecker.display_issues(
+                stability_issues, title="🔬 卷积层稳定性诊断"
+            )
+
+            st.info(
+                f"""
             💡 **卷积层健康指标**：
             
             - **输入范围**: [{np.min(demo_input_image):.2f}, {np.max(demo_input_image):.2f}]
@@ -383,7 +405,8 @@ def cnn_tab(CHINESE_SUPPORTED):
             - 卷积核过大 → 梯度爆炸 → Xavier初始化 + 权重衰减
             - 输出尺寸过小 → 信息损失 → 调整padding/stride
             - 感受野过小 → 特征不足 → 使用3×3或堆叠多层
-            """)
+            """
+            )
 
     # ==========================================
     # 第三部分：参数影响深度分析
@@ -776,6 +799,212 @@ def cnn_tab(CHINESE_SUPPORTED):
          \\frac{{input_size + 2 \\times padding - kernel_size}}{{stride}} + 1 = {{h_out}}$$
         """
         )
+
+    # ==========================================
+    # 第六部分：卷积配置诊断（第4个核心问题）
+    # ==========================================
+    st.markdown("---")
+    st.markdown("### ⚠️ 卷积配置诊断与常见问题")
+
+    st.info(
+        """
+    💡 **这一部分回答："什么时候会出问题？"**
+    
+    自动检测当前配置的潜在问题，并给出解决方案。
+    """
+    )
+
+    # 自动检测机制
+    issues = []
+    warnings = []
+
+    # 获取输出通道数
+    out_channels = conv_params.get("out_channels", 64)
+
+    # 检测1: 步长过大导致信息丢失
+    if stride > kernel_size:
+        issues.append(
+            {
+                "问题": "步长过大",
+                "原因": f"步长({stride}) > 卷积核({kernel_size})，会跳过部分输入",
+                "影响": "信息丢失严重，感受野不连续",
+                "解决方案": f"建议步长 ≤ {kernel_size}，常用值：1或2",
+            }
+        )
+
+    # 检测2: 输出尺寸过小
+    if h_out <= 2 or w_out <= 2:
+        issues.append(
+            {
+                "问题": "输出尺寸过小",
+                "原因": f"输出{h_out}×{w_out}，特征图太小",
+                "影响": "空间信息损失，后续层无法有效提取特征",
+                "解决方案": "减小步长、增加填充、或减小卷积核",
+            }
+        )
+
+    # 检测3: 无填充时边缘信息损失
+    if padding == 0 and input_size > 7:
+        warnings.append(
+            {
+                "问题": "边缘信息丢失",
+                "原因": "padding=0，边缘像素参与计算次数少",
+                "影响": "边缘特征提取不足",
+                "解决方案": f"建议padding={(kernel_size-1)//2}（same padding）",
+            }
+        )
+
+    # 检测4: 输出通道数爆炸
+    if out_channels > 1024:
+        warnings.append(
+            {
+                "问题": "输出通道数过多",
+                "原因": f"out_channels={out_channels}，参数量和计算量激增",
+                "影响": "GPU显存占用大，训练速度慢",
+                "解决方案": "使用深度可分离卷积或组卷积减少参数",
+            }
+        )
+
+    # 检测5: 卷积核过大
+    if kernel_size > 7:
+        warnings.append(
+            {
+                "问题": "卷积核过大",
+                "原因": f"kernel_size={kernel_size}，参数量过多",
+                "影响": "计算效率低，容易过拟合",
+                "解决方案": "使用多个小卷积核堆叠（如2个3×3代替1个7×7）",
+            }
+        )
+
+    # 显示检测结果
+    if issues:
+        st.error(f"🚨 检测到 {len(issues)} 个严重问题！")
+
+        for idx, issue in enumerate(issues, 1):
+            with st.expander(f"❌ 问题 {idx}: {issue['问题']}", expanded=True):
+                st.markdown(f"**原因**: {issue['原因']}")
+                st.markdown(f"**影响**: {issue['影响']}")
+                st.markdown(f"**✅ 解决方案**: {issue['解决方案']}")
+
+    if warnings:
+        st.warning(f"⚠️ 检测到 {len(warnings)} 个潜在问题")
+
+        for idx, warning in enumerate(warnings, 1):
+            with st.expander(f"⚠️ 警告 {idx}: {warning['问题']}", expanded=False):
+                st.markdown(f"**原因**: {warning['原因']}")
+                st.markdown(f"**影响**: {warning['影响']}")
+                st.markdown(f"**💡 建议**: {warning['解决方案']}")
+
+    if not issues and not warnings:
+        st.success("✅ 当前配置无明显问题！")
+
+    # 常见问题诊断表格
+    st.markdown("---")
+    st.markdown("### 📋 常见卷积配置问题速查表")
+
+    diagnostic_table = pd.DataFrame(
+        {
+            "问题症状": [
+                "输出尺寸为负数或0",
+                "特征图快速缩小",
+                "训练速度很慢",
+                "边缘检测效果差",
+                "模型过拟合",
+                "梯度消失",
+            ],
+            "可能原因": [
+                "padding太小或kernel太大",
+                "stride过大或层数过多",
+                "channel数过多或kernel过大",
+                "padding=0，边缘信息丢失",
+                "kernel过大，参数过多",
+                "网络太深，无归一化",
+            ],
+            "诊断方法": [
+                "检查公式：(H+2P-K)/S+1是否>0",
+                "计算每层输出尺寸",
+                "计算参数量和FLOPs",
+                "可视化特征图边缘",
+                "检查参数量，使用正则化",
+                "检查梯度范数",
+            ],
+            "解决方案": [
+                "增加padding或减小kernel",
+                "减小stride(1或2)或使用空洞卷积",
+                "深度可分离卷积或减少通道",
+                "padding=(kernel-1)//2",
+                "多个小卷积堆叠或正则化",
+                "BatchNorm + ResNet跳跃连接",
+            ],
+        }
+    )
+
+    st.dataframe(diagnostic_table, use_container_width=True, height=280)
+
+    # 配置建议
+    st.markdown("---")
+    st.markdown("### 💡 卷积层配置最佳实践")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.markdown(
+            """
+        **👍 推荐配置**：
+        
+        - **卷积核大小**: 3×3（现代CNN标准）
+        - **步长**: 1（保持分辨率）或2（降采样）
+        - **填充**: (kernel_size-1)//2（保持尺寸）
+        - **通道数**: 逐层递增（32→64→128→256）
+        - **激活函数**: ReLU或LeakyReLU
+        - **归一化**: BatchNorm（在激活前）
+        """
+        )
+
+    with col2:
+        st.markdown(
+            """
+        **👎 应避免的配置**：
+        
+        - ❌ 步长 > 卷积核（信息跳跃）
+        - ❌ 大卷积核无堆叠（参数浪费）
+        - ❌ 无padding（边缘信息丢失）
+        - ❌ 通道数突变（如32→512）
+        - ❌ 深层网络无BatchNorm（梯度消失）
+        - ❌ 过多降采样（空间信息损失）
+        """
+        )
+
+    # 实际案例对比
+    st.markdown("---")
+    st.markdown("### 🔬 配置对比实验")
+
+    st.markdown("**场景：56×56输入，输出28×28**")
+
+    comparison_data = pd.DataFrame(
+        {
+            "方案": ["❌ 差配置", "✅ 好配置", "⭐ 最佳配置"],
+            "卷积核": ["7×7", "3×3", "3×3"],
+            "步长": ["4", "2", "2"],
+            "填充": ["0", "1", "1"],
+            "输出尺寸": ["13×13", "28×28", "28×28"],
+            "参数量": ["3,136K", "576K", "576K + BN"],
+            "问题": ["尺寸不符+参数多+跳跃", "尺寸正确", "尺寸正确+稳定训练"],
+            "推荐度": ["⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+        }
+    )
+
+    st.dataframe(comparison_data, use_container_width=True)
+
+    st.info(
+        """
+    💡 **总结**：
+    
+    - 好的卷积配置应该：参数高效、保留信息、便于训练
+    - 遇到问题时：先检查输出尺寸，再检查参数量，最后检查梯度
+    - 记住：**3×3卷积 + stride=2 + padding=1** 是现代CNN的黄金组合
+    """
+    )
 
 
 if __name__ == "__main__":

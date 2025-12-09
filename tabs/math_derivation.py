@@ -270,7 +270,7 @@ def _graph_laplacian():
         num_nodes = 5  # 使用5个节点的示例图
         G = nx.erdos_renyi_graph(num_nodes, 0.4, seed=42)
     A = nx.adjacency_matrix(G).todense()
-    D = np.diag(np.sum(A, axis=1).A1)  # 修复：使用 .A1 转换为1D数组
+    D = np.diag(np.sum(A, axis=1).flatten())  # 使用 flatten() 转换为1D数组
     L = D - A
 
     # 归一化拉普拉斯

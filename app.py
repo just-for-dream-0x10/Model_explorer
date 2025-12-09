@@ -66,7 +66,7 @@ with st.sidebar:
     st.markdown("---")
     st.markdown("### 📚 项目信息")
     st.markdown("**开发者**: Just For Dream Lab")
-    st.markdown("[GitHub](https://github.com)")
+    st.markdown("[GitHub](https://github.com/just-for-dream-0x10)")
     st.markdown("[文档](./README.md)")
 
 # ==========================================

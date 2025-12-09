@@ -22,7 +22,9 @@ class CacheManager:
     提供线程安全的缓存功能，支持TTL和LRU策略。
     """
 
-    def __init__(self, max_size: int = 1000, ttl: int = 3600, default_ttl: Optional[int] = None):
+    def __init__(
+        self, max_size: int = 1000, ttl: int = 3600, default_ttl: Optional[int] = None
+    ):
         """初始化缓存管理器
 
         Args:
