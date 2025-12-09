@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 from typing import Dict, List, Tuple
 
 from .layer_analyzer import LayerAnalyzer
+from templates.template_loader import TemplateLoader
 
 
 def full_network_analysis():
@@ -139,6 +140,11 @@ def predefined_network_analysis():
     st.markdown("---")
     st.markdown("### 📋 详细层信息")
 
+    # 检查是否有层数据
+    if not layers_data:
+        st.warning("⚠️ 该网络模板暂未完全实现，请选择其他网络或使用自定义网络模式。")
+        return
+
     # 创建详细数据表
     detailed_data = []
     for i, layer in enumerate(layers_data):
@@ -153,12 +159,15 @@ def predefined_network_analysis():
         )
 
     df = pd.DataFrame(detailed_data)
-    df["参数量"] = df["参数量"].apply(
-        lambda x: f"{x/1e6:.2f}M" if x > 1e6 else f"{x/1e3:.1f}K"
-    )
-    df["FLOPs"] = df["FLOPs"].apply(
-        lambda x: f"{x/1e9:.2f}G" if x > 1e9 else f"{x/1e6:.1f}M"
-    )
+    
+    # 只有当DataFrame不为空时才进行格式化
+    if not df.empty:
+        df["参数量"] = df["参数量"].apply(
+            lambda x: f"{x/1e6:.2f}M" if x > 1e6 else f"{x/1e3:.1f}K"
+        )
+        df["FLOPs"] = df["FLOPs"].apply(
+            lambda x: f"{x/1e9:.2f}G" if x > 1e9 else f"{x/1e6:.1f}M"
+        )
 
     st.dataframe(df, use_container_width=True)
 
@@ -308,12 +317,15 @@ def custom_network_analysis():
             )
 
         df = pd.DataFrame(df_data)
-        df["参数量"] = df["参数量"].apply(
-            lambda x: f"{x/1e6:.2f}M" if x > 1e6 else f"{x/1e3:.1f}K"
-        )
-        df["FLOPs"] = df["FLOPs"].apply(
-            lambda x: f"{x/1e9:.2f}G" if x > 1e9 else f"{x/1e6:.1f}M"
-        )
+        
+        # 只有当DataFrame不为空时才进行格式化
+        if not df.empty:
+            df["参数量"] = df["参数量"].apply(
+                lambda x: f"{x/1e6:.2f}M" if x > 1e6 else f"{x/1e3:.1f}K"
+            )
+            df["FLOPs"] = df["FLOPs"].apply(
+                lambda x: f"{x/1e9:.2f}G" if x > 1e9 else f"{x/1e6:.1f}M"
+            )
 
         st.dataframe(df, use_container_width=True)
 
@@ -392,27 +404,149 @@ def analyze_layer(layer_config: Dict) -> Dict:
 
 def get_network_config(network_name: str, input_size: int) -> List[Dict]:
     """获取预定义网络配置"""
-    # 这里简化实现，实际应该从模板文件加载
-    if "ResNet-18" in network_name:
-        return [
-            {"type": "Conv2d", "params": 9408, "flops": 118013952, "memory": 0.04},
-            {"type": "Conv2d", "params": 36928, "flops": 463622144, "memory": 0.14},
-            {"type": "Conv2d", "params": 73856, "flops": 927244288, "memory": 0.28},
-            # ... 更多层
-        ]
-    elif "BERT-base" in network_name:
-        return [
-            {"type": "Embedding", "params": 30522 * 768, "flops": 0, "memory": 89.0},
-            {
-                "type": "MultiHeadAttention",
-                "params": 2364416,
-                "flops": 2364416,
-                "memory": 9.0,
-            },
-            # ... 更多层
-        ]
-    else:
+    # 映射显示名称到模板ID
+    name_to_template_id = {
+        "ResNet-18 (CNN)": "residual_block",
+        "ResNet-50 (CNN)": "residual_block",
+        "VGG-16 (CNN)": "vgg_like",
+        "MobileNetV2 (轻量级CNN)": "mobilenet_like",
+        "BERT-base (Transformer)": "bert_like",
+        "GPT-2 small (Transformer)": "gpt_like",
+        "ViT-Base (Vision Transformer)": "vision_transformer",
+    }
+    
+    template_id = name_to_template_id.get(network_name)
+    if not template_id:
         return []
+    
+    # 加载模板
+    loader = TemplateLoader()
+    template = loader.get_template(template_id)
+    
+    if not template:
+        return []
+    
+    # 分析每一层并计算参数
+    layers_data = []
+    current_shape = template.input_shape[1:]  # 去掉batch维度
+    
+    for layer_config in template.layers:
+        layer_type = layer_config["layer_type"]
+        params_dict = layer_config["params"]
+        
+        try:
+            layer_info = analyze_layer_from_template(
+                layer_type, params_dict, current_shape
+            )
+            layers_data.append(layer_info)
+            
+            # 更新当前shape用于下一层
+            if "output_shape" in layer_info and layer_info["output_shape"] != "-":
+                current_shape = layer_info["output_shape"]
+        except Exception as e:
+            # 如果某层分析失败，跳过该层但继续处理其他层
+            print(f"Warning: Failed to analyze layer {layer_config['name']}: {e}")
+            continue
+    
+    return layers_data
+
+
+def analyze_layer_from_template(
+    layer_type: str, params: Dict, input_shape
+) -> Dict:
+    """从模板配置分析单个层"""
+    
+    if layer_type == "Conv2d":
+        # 确保input_shape是3D (C, H, W)
+        if isinstance(input_shape, (list, tuple)) and len(input_shape) >= 3:
+            if len(input_shape) == 4:  # (N, C, H, W)
+                input_shape = input_shape[1:]
+            result = LayerAnalyzer.conv2d_analysis(
+                params["in_channels"],
+                params["out_channels"],
+                params["kernel_size"],
+                params.get("stride", 1),
+                params.get("padding", 0),
+                input_shape,
+                use_bias=params.get("use_bias", True),
+            )
+        else:
+            # 默认形状
+            result = LayerAnalyzer.conv2d_analysis(
+                params["in_channels"],
+                params["out_channels"],
+                params["kernel_size"],
+                params.get("stride", 1),
+                params.get("padding", 0),
+                (params["in_channels"], 224, 224),
+                use_bias=params.get("use_bias", True),
+            )
+    
+    elif layer_type == "Linear":
+        result = LayerAnalyzer.linear_analysis(
+            params["in_features"],
+            params["out_features"],
+            use_bias=params.get("use_bias", True),
+        )
+    
+    elif layer_type == "BatchNorm2d":
+        # BatchNorm2d需要input_shape来计算FLOPs
+        if isinstance(input_shape, (list, tuple)) and len(input_shape) >= 3:
+            if len(input_shape) == 4:  # (N, C, H, W)
+                input_shape = input_shape[1:]
+            result = LayerAnalyzer.batchnorm2d_analysis(
+                params["num_features"], input_shape
+            )
+        else:
+            # 使用默认形状
+            result = LayerAnalyzer.batchnorm2d_analysis(
+                params["num_features"], (params["num_features"], 224, 224)
+            )
+    
+    elif layer_type == "LayerNorm":
+        normalized_shape = params.get("normalized_shape", [512])
+        if isinstance(normalized_shape, int):
+            normalized_shape = [normalized_shape]
+        result = LayerAnalyzer.layernorm_analysis(tuple(normalized_shape))
+    
+    elif layer_type == "MultiHeadAttention":
+        result = LayerAnalyzer.attention_analysis(
+            params.get("d_model", 512),
+            params.get("num_heads", 8),
+            params.get("seq_len", 128),
+        )
+    
+    elif layer_type == "LSTM":
+        result = LayerAnalyzer.lstm_analysis(
+            params.get("input_size", 512),
+            params.get("hidden_size", 512),
+            params.get("num_layers", 1),
+            bidirectional=params.get("bidirectional", False),
+        )
+    
+    elif layer_type == "Embedding":
+        result = LayerAnalyzer.embedding_analysis(
+            params.get("num_embeddings", 10000),
+            params.get("embedding_dim", 512),
+        )
+    
+    else:
+        # 对于无参数的层 (ReLU, Dropout, MaxPool2d, Flatten等)
+        result = {
+            "layer_type": layer_type,
+            "parameters": {"total": 0},
+            "flops": {"total": 0},
+            "memory_mb": {"parameters": 0},
+            "output_shape": "-",
+        }
+    
+    return {
+        "type": layer_type,
+        "params": result["parameters"]["total"],
+        "flops": result["flops"]["total"],
+        "memory": result.get("memory_mb", {}).get("parameters", 0),
+        "output_shape": result.get("output_shape", "-"),
+    }
 
 
 def generate_network_report(

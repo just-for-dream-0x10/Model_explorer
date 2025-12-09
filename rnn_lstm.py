@@ -1,5 +1,11 @@
 """
 RNN/LSTM 时序神经网络数学原理模块
+
+v2.2.0 新增：
+- 数值稳定性自动检测
+- 梯度消失/爆炸自动判断
+- 门控饱和检测
+- 序列长度影响分析
 """
 
 import streamlit as st
@@ -11,6 +17,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 from simple_latex import display_latex
+from utils.numerical_stability_checker import StabilityChecker
 
 
 def rnn_lstm_tab(CHINESE_SUPPORTED):
@@ -274,6 +281,88 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
             st.markdown(
                 f"🔵 **输出门 ({current_gates['输出门']:.2f})**: 输出较少内部状态"
             )
+        
+        # ==================== 门控饱和检测 ====================
+        st.markdown("---")
+        st.markdown("#### 🔬 LSTM门控稳定性检测")
+        
+        stability_issues = []
+        
+        # 检查每个门的饱和情况
+        all_gate_values = np.array([
+            gate_values["遗忘门"],
+            gate_values["输入门"],
+            gate_values["输出门"]
+        ]).flatten()
+        
+        # 检查遗忘门
+        forget_array = np.array(gate_values["遗忘门"])
+        forget_check = StabilityChecker.check_gate_saturation(forget_array, "遗忘门")
+        stability_issues.append(forget_check)
+        
+        # 检查输入门
+        input_array = np.array(gate_values["输入门"])
+        input_check = StabilityChecker.check_gate_saturation(input_array, "输入门")
+        stability_issues.append(input_check)
+        
+        # 检查输出门
+        output_array = np.array(gate_values["输出门"])
+        output_check = StabilityChecker.check_gate_saturation(output_array, "输出门")
+        stability_issues.append(output_check)
+        
+        # 检查门控协调性
+        forget_mean = np.mean(forget_array)
+        input_mean = np.mean(input_array)
+        
+        if forget_mean > 0.9 and input_mean < 0.1:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '门控不协调',
+                'value': f'遗忘门={forget_mean:.2f}, 输入门={input_mean:.2f}',
+                'threshold': '遗忘>0.9且输入<0.1',
+                'icon': '🟡',
+                'severity': 'medium',
+                'details': {
+                    '遗忘门均值': f'{forget_mean:.2f}',
+                    '输入门均值': f'{input_mean:.2f}',
+                    '解释': '大量遗忘但拒绝新信息'
+                },
+                'solution': [
+                    '检查输入数据质量',
+                    '调整学习率',
+                    '检查初始化',
+                    '可能需要更多训练'
+                ],
+                'explanation': '遗忘门开大但输入门关闭，网络既忘记历史又不接受新信息，可能陷入退化状态'
+            })
+        elif forget_mean < 0.1 and input_mean > 0.9:
+            stability_issues.append({
+                'status': 'success',
+                'type': '门控协调良好',
+                'value': f'遗忘门={forget_mean:.2f}, 输入门={input_mean:.2f}',
+                'icon': '🟢',
+                'severity': 'none',
+                'details': {
+                    '遗忘门均值': f'{forget_mean:.2f}',
+                    '输入门均值': f'{input_mean:.2f}',
+                    '解释': '保留历史且接受新信息'
+                }
+            })
+        
+        StabilityChecker.display_issues(stability_issues, 
+                                       title="🔬 LSTM门控诊断报告")
+        
+        st.info("""
+        💡 **LSTM门控健康指标**：
+        
+        - **遗忘门**: 0.8-0.9为佳（保留大部分历史）
+        - **输入门**: 0.1-0.3为佳（选择性接受新信息）
+        - **输出门**: 0.5-0.7为佳（适度输出）
+        
+        **饱和问题**：
+        - >95%的门接近0或1 → 梯度消失
+        - 协调问题：遗忘>0.9且输入<0.1 → 信息流断裂
+        """)
 
     # ==========================================
     # 第四部分：梯度消失/爆炸演示
@@ -334,6 +423,72 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
         st.markdown(
             f"**观察：** 经过{time_steps}步后，梯度从1.0衰减到{gradients[-1]:.6f}"
         )
+        
+        # ==================== 数值稳定性检测 ====================
+        st.markdown("---")
+        st.markdown("#### 🔬 梯度消失诊断")
+        
+        stability_issues = []
+        
+        # 检查最终梯度
+        final_grad = gradients[-1]
+        grad_check = StabilityChecker.check_gradient(
+            np.array([final_grad]), f"第{time_steps}步梯度"
+        )
+        stability_issues.append(grad_check)
+        
+        # 检查衰减率
+        if len(gradients) > 1:
+            decay_rate = gradients[0] / gradients[-1] if gradients[-1] > 0 else float('inf')
+            if decay_rate > 1e6:
+                stability_issues.append({
+                    'status': 'error',
+                    'type': '梯度严重消失',
+                    'value': f'{decay_rate:.2e}倍衰减',
+                    'threshold': '> 1e6',
+                    'icon': '🔴',
+                    'severity': 'critical',
+                    'details': {
+                        '初始梯度': f'{gradients[0]:.6f}',
+                        '最终梯度': f'{gradients[-1]:.6e}',
+                        '衰减率': f'{decay_rate:.2e}',
+                        '时间步数': time_steps
+                    },
+                    'solution': [
+                        '使用LSTM或GRU替代RNN',
+                        '减少序列长度',
+                        '使用残差连接',
+                        '使用LayerNorm',
+                        '使用更好的初始化（Orthogonal）'
+                    ],
+                    'explanation': f'梯度在{time_steps}步后衰减{decay_rate:.2e}倍，早期时间步的信息无法学习'
+                })
+        
+        # 检查权重缩放的影响
+        if weight_scale < 0.9:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '权重缩放过小',
+                'value': f'{weight_scale}',
+                'threshold': '< 0.9',
+                'icon': '🟡',
+                'severity': 'high',
+                'details': {
+                    '权重缩放': f'{weight_scale}',
+                    '每步衰减': f'{(1-weight_scale)*100:.1f}%',
+                    '理想范围': '[0.9, 1.1]'
+                },
+                'solution': [
+                    '使用Orthogonal初始化（特征值≈1）',
+                    '使用Identity初始化',
+                    '添加残差连接',
+                    '使用LSTM/GRU'
+                ],
+                'explanation': '权重值<1导致梯度指数级衰减，这就是RNN的梯度消失问题'
+            })
+        
+        StabilityChecker.display_issues(stability_issues, 
+                                       title="🔬 梯度消失诊断报告")
 
     elif gradient_demo == "梯度爆炸":
         st.markdown(
@@ -398,6 +553,90 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
             )
         )
         st.plotly_chart(fig, width="stretch")
+        
+        # ==================== 数值稳定性检测 ====================
+        st.markdown("---")
+        st.markdown("#### 🔬 梯度爆炸诊断")
+        
+        stability_issues = []
+        
+        # 检查最终梯度
+        final_grad = gradients[-1]
+        grad_check = StabilityChecker.check_gradient(
+            np.array([final_grad]), f"第{time_steps}步梯度"
+        )
+        stability_issues.append(grad_check)
+        
+        # 检查爆炸率
+        if len(gradients) > 1:
+            explosion_rate = gradients[-1] / gradients[0]
+            if explosion_rate > 1e6:
+                stability_issues.append({
+                    'status': 'error',
+                    'type': '梯度严重爆炸',
+                    'value': f'{explosion_rate:.2e}倍增长',
+                    'threshold': '> 1e6',
+                    'icon': '🟠',
+                    'severity': 'critical',
+                    'details': {
+                        '初始梯度': f'{gradients[0]:.6f}',
+                        '最终梯度': f'{gradients[-1]:.2e}',
+                        '爆炸率': f'{explosion_rate:.2e}',
+                        '时间步数': time_steps
+                    },
+                    'solution': [
+                        '使用梯度裁剪 (clip_grad_norm)',
+                        '降低学习率',
+                        '检查权重初始化',
+                        '使用BatchNorm/LayerNorm',
+                        '减少序列长度'
+                    ],
+                    'explanation': f'梯度在{time_steps}步后爆炸{explosion_rate:.2e}倍，导致参数更新过大，训练不稳定'
+                })
+        
+        # 检查权重缩放的影响
+        if weight_scale > 1.1:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '权重缩放过大',
+                'value': f'{weight_scale}',
+                'threshold': '> 1.1',
+                'icon': '🟡',
+                'severity': 'high',
+                'details': {
+                    '权重缩放': f'{weight_scale}',
+                    '每步增长': f'{(weight_scale-1)*100:.1f}%',
+                    '理想范围': '[0.9, 1.1]'
+                },
+                'solution': [
+                    '使用梯度裁剪',
+                    '使用Xavier/He初始化',
+                    '降低学习率',
+                    '添加权重衰减（L2正则化）'
+                ],
+                'explanation': '权重值>1导致梯度指数级增长，这就是RNN的梯度爆炸问题'
+            })
+        
+        # 检查梯度裁剪效果
+        clipped_count = sum(1 for g in gradients if g > clip_threshold)
+        if clipped_count > 0:
+            reduction = (sum(gradients) - sum(clipped_gradients)) / sum(gradients) * 100
+            stability_issues.append({
+                'status': 'success',
+                'type': '梯度裁剪效果',
+                'value': f'{clipped_count}/{len(gradients)}步被裁剪',
+                'icon': '✅',
+                'severity': 'none',
+                'details': {
+                    '裁剪阈值': f'{clip_threshold}',
+                    '被裁剪步数': f'{clipped_count}',
+                    '总步数': len(gradients),
+                    '梯度减少': f'{reduction:.1f}%'
+                }
+            })
+        
+        StabilityChecker.display_issues(stability_issues, 
+                                       title="🔬 梯度爆炸诊断报告")
 
     else:  # LSTM vs RNN 对比
         st.markdown(

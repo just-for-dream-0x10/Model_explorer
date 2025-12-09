@@ -4,6 +4,11 @@ ResNet Residual Connection Analysis
 
 验证残差连接如何解决梯度消失问题
 核心理念：用数值证明"梯度高速公路"这个经典概念
+
+v2.2.0 新增：
+- 统一稳定性检测
+- 自动判断梯度健康状况
+- 对比分析增强
 """
 
 import streamlit as st
@@ -14,6 +19,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from utils.resnet_models import get_resnet_comparison, TinyPlainNet, TinyResNet
+from utils.numerical_stability_checker import StabilityChecker
 
 
 def analyze_gradient_flow(model, input_size, num_samples=10):
@@ -473,6 +479,110 @@ def resnet_analysis_tab(chinese_supported=True):
                     f"✅ 层 {i+1}: {stat['layer'][:50]} | 梯度={mean_grad:.2e} (正常)"
                 )
 
+        # ==================== 数值稳定性诊断 ====================
+        st.markdown("---")
+        st.subheader("🔬 梯度流稳定性诊断")
+        
+        stability_issues = []
+        
+        # 1. 检查普通网络的梯度
+        plain_grads = np.array([stat["mean"] for stat in plain_stats])
+        plain_check = StabilityChecker.check_gradient(plain_grads, "普通网络梯度")
+        stability_issues.append(plain_check)
+        
+        # 2. 检查ResNet的梯度
+        resnet_grads = np.array([stat["mean"] for stat in resnet_stats])
+        resnet_check = StabilityChecker.check_gradient(resnet_grads, "ResNet梯度")
+        stability_issues.append(resnet_check)
+        
+        # 3. 对比分析
+        improvement_ratio = resnet_avg / (plain_avg + 1e-10)
+        if improvement_ratio > 10:
+            stability_issues.append({
+                'status': 'success',
+                'type': '残差连接显著改善',
+                'value': f'{improvement_ratio:.1f}倍提升',
+                'icon': '✅',
+                'severity': 'none',
+                'details': {
+                    '普通网络平均梯度': f'{plain_avg:.2e}',
+                    'ResNet平均梯度': f'{resnet_avg:.2e}',
+                    '改善倍数': f'{improvement_ratio:.1f}',
+                    '普通网络消失层': f'{plain_vanished}/{len(plain_stats)}',
+                    'ResNet消失层': f'{resnet_vanished}/{len(resnet_stats)}'
+                }
+            })
+        elif improvement_ratio > 2:
+            stability_issues.append({
+                'status': 'success',
+                'type': '残差连接改善',
+                'value': f'{improvement_ratio:.1f}倍提升',
+                'icon': '🟢',
+                'severity': 'none',
+                'details': {
+                    '普通网络平均梯度': f'{plain_avg:.2e}',
+                    'ResNet平均梯度': f'{resnet_avg:.2e}',
+                    '改善倍数': f'{improvement_ratio:.1f}'
+                }
+            })
+        else:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '残差连接效果不明显',
+                'value': f'{improvement_ratio:.1f}倍',
+                'threshold': '< 2倍',
+                'icon': '🟡',
+                'severity': 'low',
+                'details': {
+                    '普通网络平均梯度': f'{plain_avg:.2e}',
+                    'ResNet平均梯度': f'{resnet_avg:.2e}',
+                    '改善倍数': f'{improvement_ratio:.1f}'
+                },
+                'solution': [
+                    '增加网络深度（建议>30层）',
+                    '去除BatchNorm后测试',
+                    '增加采样次数减少噪声',
+                    '使用更复杂的数据'
+                ],
+                'explanation': '当前配置下残差连接的优势不够明显，可能是网络太浅或BatchNorm已缓解梯度问题'
+            })
+        
+        # 4. 深度影响分析
+        if num_layers >= 30:
+            stability_issues.append({
+                'status': 'success',
+                'type': '网络深度',
+                'value': f'{num_layers}层',
+                'icon': '🟢',
+                'severity': 'none',
+                'details': {
+                    '层数': num_layers,
+                    '评价': '足够深，能展示残差连接优势'
+                }
+            })
+        elif num_layers >= 20:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '网络深度适中',
+                'value': f'{num_layers}层',
+                'threshold': '< 30层',
+                'icon': '🟡',
+                'severity': 'low',
+                'details': {
+                    '层数': num_layers,
+                    '建议': '增加到30+层效果更明显'
+                },
+                'solution': [
+                    '增加到30-50层',
+                    '观察更明显的梯度消失现象',
+                    '对比效果会更显著'
+                ],
+                'explanation': '网络深度适中，残差连接的优势可能不够突出'
+            })
+        
+        StabilityChecker.display_issues(stability_issues, 
+                                       title="🔬 ResNet vs 普通网络 - 梯度稳定性对比")
+        
         # 结论
         st.markdown("---")
         st.subheader("📚 实验结论")

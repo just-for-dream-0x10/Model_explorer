@@ -22,15 +22,17 @@ class CacheManager:
     提供线程安全的缓存功能，支持TTL和LRU策略。
     """
 
-    def __init__(self, max_size: int = 1000, default_ttl: int = 3600):
+    def __init__(self, max_size: int = 1000, ttl: int = 3600, default_ttl: Optional[int] = None):
         """初始化缓存管理器
 
         Args:
             max_size: 最大缓存条目数
-            default_ttl: 默认TTL（秒）
+            ttl: 默认TTL（秒），向后兼容参数
+            default_ttl: 默认TTL（秒），向后兼容参数
         """
         self.max_size = max_size
-        self.default_ttl = default_ttl
+        # 支持两种参数名，优先使用 default_ttl
+        self.default_ttl = default_ttl if default_ttl is not None else ttl
         self._cache: Dict[str, Dict[str, Any]] = {}
         self._lock = threading.RLock()
         self._access_order = []  # LRU访问顺序

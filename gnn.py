@@ -1,5 +1,11 @@
 """
 GNN图神经网络数学原理模块
+
+v2.2.0 新增：
+- 数值稳定性自动检测
+- 过平滑(over-smoothing)检测
+- 节点特征范数检测
+- 邻接矩阵谱分析
 """
 
 import streamlit as st
@@ -11,6 +17,7 @@ import networkx as nx
 import plotly.graph_objects as go
 import plotly.express as px
 from simple_latex import display_latex
+from utils.numerical_stability_checker import StabilityChecker
 
 from utils.visualization import ChartBuilder
 from utils.exceptions import ComputationError
@@ -367,6 +374,211 @@ def gnn_tab(CHINESE_SUPPORTED):
                     columns=[f"输出{j}" for j in range(feature_dim)],
                 )
             )
+        
+        # ==================== 数值稳定性检测 ====================
+        st.markdown("---")
+        st.markdown("### 🔬 GNN数值稳定性诊断")
+        
+        st.info("💡 GNN特有问题：过平滑(over-smoothing)、梯度消失、节点特征退化")
+        
+        stability_issues = []
+        
+        # 1. 检查节点特征范数
+        feature_norm = np.linalg.norm(features)
+        feature_check = StabilityChecker.check_activation(
+            features.flatten(), "输入节点特征"
+        )
+        stability_issues.append(feature_check)
+        
+        # 2. 检查聚合后的特征
+        aggregated_check = StabilityChecker.check_activation(
+            aggregated.flatten(), "聚合后特征"
+        )
+        stability_issues.append(aggregated_check)
+        
+        # 3. 检查输出特征
+        output_check = StabilityChecker.check_activation(
+            activated.flatten(), "GNN输出特征"
+        )
+        stability_issues.append(output_check)
+        
+        # 4. 过平滑检测（关键！）
+        # 计算节点特征之间的余弦相似度
+        feature_norms = np.linalg.norm(activated, axis=1, keepdims=True)
+        normalized_features = activated / (feature_norms + 1e-8)
+        similarity_matrix = np.dot(normalized_features, normalized_features.T)
+        
+        # 排除对角线
+        off_diagonal_mask = ~np.eye(num_nodes, dtype=bool)
+        avg_similarity = np.mean(similarity_matrix[off_diagonal_mask])
+        max_similarity = np.max(similarity_matrix[off_diagonal_mask])
+        
+        if avg_similarity > 0.95:
+            stability_issues.append({
+                'status': 'error',
+                'type': '严重过平滑',
+                'value': f'{avg_similarity:.4f}',
+                'threshold': '> 0.95',
+                'icon': '🔴',
+                'severity': 'critical',
+                'details': {
+                    '平均相似度': f'{avg_similarity:.4f}',
+                    '最大相似度': f'{max_similarity:.4f}',
+                    '节点数': num_nodes,
+                    '特征维度': feature_dim
+                },
+                'solution': [
+                    '减少GNN层数',
+                    '使用残差连接（如ResGCN）',
+                    '使用PairNorm/GraphNorm',
+                    '使用Jumping Knowledge Networks',
+                    '添加自环（self-loops）权重'
+                ],
+                'explanation': '所有节点特征高度相似，失去了节点间的区分度，这是深层GNN的典型问题'
+            })
+        elif avg_similarity > 0.85:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '轻度过平滑',
+                'value': f'{avg_similarity:.4f}',
+                'threshold': '> 0.85',
+                'icon': '🟡',
+                'severity': 'medium',
+                'details': {
+                    '平均相似度': f'{avg_similarity:.4f}',
+                    '最大相似度': f'{max_similarity:.4f}',
+                    '节点数': num_nodes
+                },
+                'solution': [
+                    '监控更深层的相似度变化',
+                    '考虑添加残差连接',
+                    '使用节点自适应聚合'
+                ],
+                'explanation': '节点特征相似度较高，继续加深可能导致过平滑'
+            })
+        else:
+            stability_issues.append({
+                'status': 'success',
+                'type': '节点特征区分度',
+                'value': f'平均相似度={avg_similarity:.4f}',
+                'icon': '🟢',
+                'severity': 'none',
+                'details': {
+                    '平均相似度': f'{avg_similarity:.4f}',
+                    '最大相似度': f'{max_similarity:.4f}',
+                    '节点数': num_nodes
+                }
+            })
+        
+        # 5. 邻接矩阵谱分析
+        eigenvalues = np.linalg.eigvals(normalized_adj)
+        max_eigenvalue = np.max(np.abs(eigenvalues))
+        
+        if max_eigenvalue > 1.1:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '邻接矩阵特征值过大',
+                'value': f'{max_eigenvalue:.4f}',
+                'threshold': '> 1.1',
+                'icon': '🟡',
+                'severity': 'medium',
+                'details': {
+                    '最大特征值': f'{max_eigenvalue:.4f}',
+                    '归一化方法': '对称归一化',
+                    '理想范围': '[0, 1]'
+                },
+                'solution': [
+                    '检查归一化是否正确',
+                    '使用谱归一化',
+                    '添加自环权重',
+                    '使用GCN的归一化技巧'
+                ],
+                'explanation': '特征值>1可能导致特征爆炸，影响训练稳定性'
+            })
+        else:
+            stability_issues.append({
+                'status': 'success',
+                'type': '邻接矩阵特征值',
+                'value': f'{max_eigenvalue:.4f}',
+                'icon': '🟢',
+                'severity': 'none',
+                'details': {
+                    '最大特征值': f'{max_eigenvalue:.4f}',
+                    '特征值范围': f'[{np.min(np.abs(eigenvalues)):.4f}, {max_eigenvalue:.4f}]'
+                }
+            })
+        
+        # 6. 度分布检查
+        degree_sum = np.sum(adj_matrix, axis=1)
+        max_degree = np.max(degree_sum)
+        min_degree = np.min(degree_sum)
+        degree_variance = np.var(degree_sum)
+        
+        if max_degree / (min_degree + 1) > 10:
+            stability_issues.append({
+                'status': 'warning',
+                'type': '度分布不平衡',
+                'value': f'最大/最小={max_degree/(min_degree+1):.1f}',
+                'threshold': '> 10',
+                'icon': '🟡',
+                'severity': 'medium',
+                'details': {
+                    '最大度': f'{max_degree:.0f}',
+                    '最小度': f'{min_degree:.0f}',
+                    '平均度': f'{np.mean(degree_sum):.2f}',
+                    '方差': f'{degree_variance:.2f}'
+                },
+                'solution': [
+                    '使用度归一化（GCN标准）',
+                    '使用注意力机制（GAT）',
+                    '对高度节点进行采样',
+                    '使用GraphSAINT等采样方法'
+                ],
+                'explanation': '度分布不平衡会导致高度节点特征主导，低度节点信息不足'
+            })
+        
+        # 显示诊断结果
+        StabilityChecker.display_issues(stability_issues, 
+                                       title="🔬 GNN数值稳定性诊断报告")
+        
+        st.markdown("---")
+        st.info(f"""
+        💡 **GNN健康指标总结**：
+        
+        **节点特征**：
+        - 输入范数: {feature_norm:.4f}
+        - 输出范围: [{np.min(activated):.2f}, {np.max(activated):.2f}]
+        
+        **过平滑指标**：
+        - 平均节点相似度: {avg_similarity:.4f} (建议<0.85)
+        - 最大节点相似度: {max_similarity:.4f}
+        
+        **图结构**：
+        - 邻接矩阵最大特征值: {max_eigenvalue:.4f} (建议≤1.0)
+        - 度分布: 最小{min_degree:.0f}, 最大{max_degree:.0f}, 平均{np.mean(degree_sum):.2f}
+        
+        **典型GNN问题**：
+        1. **过平滑(Over-smoothing)**: 深层GNN导致所有节点特征趋同
+           - 症状：节点相似度>0.9
+           - 解决：残差连接、PairNorm、减少层数
+        
+        2. **梯度消失**: 类似于深层神经网络
+           - 症状：梯度范数<1e-7
+           - 解决：残差连接、LayerNorm、控制层数
+        
+        3. **度不平衡**: Hub节点主导信息流
+           - 症状：度分布方差大
+           - 解决：度归一化、注意力机制、采样
+        
+        4. **特征退化**: 所有节点特征收敛到相同值
+           - 症状：特征方差趋近于0
+           - 解决：Jumping Knowledge、混合不同层的特征
+        
+        **推荐实践**：
+        - GCN: 通常2-3层最优
+        - GAT: 可以到4-5层（注意力缓解过平滑）
+        - ResGCN: 可以到10+层（残差连接）
+        """)
 
 
 if __name__ == "__main__":

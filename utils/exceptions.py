@@ -266,23 +266,33 @@ class CacheError(NetworkAnalysisError):
 
 # 异常处理装饰器
 def handle_exceptions(
-    default_return: Any = None, log_errors: bool = True, reraise: bool = False
+    func=None, *, default_return: Any = None, log_errors: bool = True, reraise: bool = False
 ):
     """异常处理装饰器
+    
+    可以带参数或不带参数使用：
+    @exception_handler
+    def func(): ...
+    
+    @exception_handler(default_return=None)
+    def func(): ...
 
     Args:
+        func: 被装饰的函数（直接使用时）
         default_return: 异常时的默认返回值
         log_errors: 是否记录错误日志
         reraise: 是否重新抛出异常
 
     Returns:
-        装饰器函数
+        装饰器函数或装饰后的函数
     """
+    import functools
 
-    def decorator(func):
+    def decorator(f):
+        @functools.wraps(f)
         def wrapper(*args, **kwargs):
             try:
-                return func(*args, **kwargs)
+                return f(*args, **kwargs)
             except NetworkAnalysisError as e:
                 if log_errors:
                     import logging
@@ -306,4 +316,13 @@ def handle_exceptions(
 
         return wrapper
 
+    # 如果func不为None，说明是不带括号调用
+    if func is not None:
+        return decorator(func)
+    
+    # 否则返回装饰器
     return decorator
+
+
+# 别名，向后兼容
+exception_handler = handle_exceptions
