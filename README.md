@@ -12,12 +12,13 @@
 
 虽然三个项目有部分**功能重复**，但**视角和深度完全不同**：
 
-| 维度 | Neural_Network_Math_Explorer | Transformer_Explorer | vision |
-|------|------------------------------|----------------------|--------|
+| 维度 | Neural_Network_Math_Explorer | Transformer_Explorer | Basic_Math |
+|------|------------------------------|----------------------|------------|
 | **核心视角** | 🔬 **"如何实现"** - 工程实现细节 | 🏗️ **"为什么设计"** - 架构原理 | 📐 **"数学本质"** - 理论基础 |
 | **典型问题** | "Conv2d(3,64,7) 有多少参数？如何计算？" | "Multi-Head 为什么比 Single-Head 好？" | "卷积定理的傅里叶变换证明？" |
 | **用户群体** | PyTorch 实现者、模型优化工程师 | 架构设计者、研究者 | 数学研究者、理论学习者 |
 | **深度层次** | 代码级（逐行计算、参数分析） | 设计级（模块组合、架构对比） | 理论级（数学推导、严格证明） |
+| **Git地址** | [Model_explorer](https://github.com/just-for-dream-0x10/Model_explorer) | [Transformer_explorer](https://github.com/just-for-dream-0x10/Transformer_explorer) | [Basic_math](https://github.com/just-for-dream-0x10/Basic_math) |
 
 ### 📚 具体差异举例
 
@@ -26,38 +27,38 @@
 | 项目 | 视角 | 内容侧重 |
 |------|------|----------|
 | **Neural（本项目）** | 🔧 实现细节 | • 3×3卷积核滑动时每个位置的乘加操作<br>• 输出形状计算：$(W-K+2P)/S+1$<br>• 参数量：$C_{out} \times C_{in} \times K^2$<br>• FLOPs/内存分析 |
-| **vision** | 📐 数学理论 | • 卷积定理的傅里叶证明<br>• 卷积的交换律、结合律<br>• 离散卷积与连续卷积的关系 |
-| **Transformer** | 🚫 不涉及 | - |
+| **Basic_Math** | 📐 数学理论 | • 卷积定理的傅里叶证明<br>• 卷积的交换律、结合律<br>• 离散卷积与连续卷积的关系 |
+| **Transformer_Explorer** | 🚫 不涉及 | - |
 
 #### 示例 2：图神经网络 (GNN)
 
 | 项目 | 视角 | 内容侧重 |
 |------|------|----------|
 | **Neural（本项目）** | 🔧 实现细节 | • GCN 消息传递的具体计算步骤<br>• $D^{-1/2}AD^{-1/2}$ 的矩阵乘法<br>• 不同 GNN 架构的参数量对比 |
-| **vision** | 📐 数学理论 | • 图拉普拉斯矩阵的谱分解<br>• 切比雪夫多项式逼近<br>• 图傅里叶变换理论 |
-| **Transformer** | 🚫 不涉及 | - |
+| **Basic_Math** | 📐 数学理论 | • 图拉普拉斯矩阵的谱分解<br>• 切比雪夫多项式逼近<br>• 图傅里叶变换理论 |
+| **Transformer_Explorer** | 🚫 不涉及 | - |
 
 #### 示例 3：优化器
 
 | 项目 | 视角 | 内容侧重 |
 |------|------|----------|
 | **Neural（本项目）** | 🔧 实现细节 | • Adam 的 m 和 v 更新公式<br>• 学习率调度的实际效果<br>• 不同优化器的收敛速度对比 |
-| **vision** | 📐 数学理论 | • Adam 的收敛性证明<br>• 动量的指数加权移动平均推导<br>• 自适应学习率的理论基础 |
-| **Transformer** | 🏗️ 架构选择 | • AdamW vs Adam 在 Transformer 中的差异<br>• 为什么解耦权重衰减<br>• Warmup + Cosine Decay 策略 |
+| **Basic_Math** | 📐 数学理论 | • Adam 的收敛性证明<br>• 动量的指数加权移动平均推导<br>• 自适应学习率的理论基础 |
+| **Transformer_Explorer** | 🏗️ 架构选择 | • AdamW vs Adam 在 Transformer 中的差异<br>• 为什么解耦权重衰减<br>• Warmup + Cosine Decay 策略 |
 
 ### 🔗 推荐学习路径
 
 ```
-第一步：vision（理解数学本质）
+第一步：Basic_Math（理解数学本质）
    ↓  "为什么卷积有效？傅里叶视角"
    
-第二步：Neural（理解实现细节）← 你在这里！
+第二步：Neural_Network_Math_Explorer（理解实现细节）← 你在这里！
    ↓  "Conv2d 怎么算？参数量多少？"
    
 第三步：动手编码
    ↓  "用 PyTorch 实现自定义卷积层"
    
-第四步：Transformer（理解架构设计）
+第四步：Transformer_Explorer（理解架构设计）
    ↓  "为什么 ViT 用 Patch Embedding？"
 ```
 
@@ -143,7 +144,7 @@
 
 ```bash
 # 克隆项目
-git clone git@github.com:just-for-dream-0x10/Model_explorer.git
+git clone https://github.com/just-for-dream-0x10/Model_explorer.git
 
 # 安装依赖
 pip install -r requirements.txt
@@ -171,7 +172,7 @@ streamlit run app.py
 - 想知道何时用CNN、何时用Transformer
 
 ### ❌ 不适合你，如果你：
-- 想学习"梯度下降为什么收敛"等通用数学理论 → 推荐 `vision` 项目
+- 想学习"梯度下降为什么收敛"等通用数学理论 → 推荐 `Basic_Math` 项目
 - 想深入理解"Attention机制为什么有效" → 推荐 `Transformer_Explorer` 项目
 - 想要生产级的模型训练工具 → 推荐 PyTorch/TensorFlow
 
