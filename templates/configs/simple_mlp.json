@@ -1,0 +1,48 @@
+{
+  "id": "simple_mlp",
+  "name": "简单MLP",
+  "description": "基础的多层感知机，适用于向量输入",
+  "category": "MLP",
+  "icon": "🧠",
+  "difficulty": "beginner",
+  "tags": ["MLP", "全连接", "入门", "向量输入"],
+  "use_cases": ["表格数据", "特征向量分类", "MLP入门"],
+  "input_shape": [1, 784],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 784, "out_features": 512}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout1",
+      "params": {"p": 0.2}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 512, "out_features": 256}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout2",
+      "params": {"p": 0.2}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc3",
+      "params": {"in_features": 256, "out_features": 10}
+    }
+  ]
+}

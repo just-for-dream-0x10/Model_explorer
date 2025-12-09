@@ -1,0 +1,88 @@
+{
+  "id": "vgg_like",
+  "name": "VGG-like Net",
+  "description": "类VGG架构，使用3x3小卷积核堆叠",
+  "category": "CNN",
+  "icon": "🏛️",
+  "difficulty": "intermediate",
+  "tags": ["CNN", "VGG", "深度网络", "ImageNet"],
+  "use_cases": ["ImageNet分类", "特征提取", "迁移学习"],
+  "input_shape": [1, 3, 224, 224],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1_1",
+      "params": {"in_channels": 3, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1_1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1_2",
+      "params": {"in_channels": 64, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1_2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2_1",
+      "params": {"in_channels": 64, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2_1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2_2",
+      "params": {"in_channels": 128, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2_2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 802816, "out_features": 4096}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_fc1",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout1",
+      "params": {"p": 0.5}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 4096, "out_features": 1000}
+    }
+  ]
+}

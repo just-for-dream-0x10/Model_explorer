@@ -9,3 +9,5 @@ scikit-learn
 matplotlib
 sympy
 scipy
+einops
+tabulate

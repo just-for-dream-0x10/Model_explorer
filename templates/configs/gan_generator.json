@@ -1,0 +1,53 @@
+{
+  "id": "gan_generator",
+  "name": "GAN生成器",
+  "description": "生成对抗网络的生成器部分，从噪声生成图像",
+  "category": "GAN",
+  "icon": "🎨",
+  "difficulty": "advanced",
+  "tags": ["GAN", "生成模型", "图像生成", "对抗训练"],
+  "use_cases": ["图像生成", "数据增强", "风格迁移", "超分辨率"],
+  "input_shape": [1, 100],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "fc",
+      "params": {"in_features": 100, "out_features": 12544}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_fc",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "reshape_proxy1",
+      "params": {"in_features": 12544, "out_features": 12544}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "deconv1",
+      "params": {"in_features": 12544, "out_features": 25088}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "deconv2",
+      "params": {"in_features": 25088, "out_features": 50176}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "deconv3",
+      "params": {"in_features": 50176, "out_features": 3072}
+    }
+  ]
+}

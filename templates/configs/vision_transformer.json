@@ -1,0 +1,73 @@
+{
+  "id": "vision_transformer",
+  "name": "视觉Transformer (ViT)",
+  "description": "Vision Transformer架构，将图像分块后使用Transformer处理",
+  "category": "Transformer",
+  "icon": "👁️",
+  "difficulty": "advanced",
+  "tags": ["ViT", "视觉Transformer", "图像分类", "注意力机制"],
+  "use_cases": ["图像分类", "视觉特征提取", "多模态学习"],
+  "input_shape": [1, 3, 224, 224],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "patch_embed",
+      "params": {"in_channels": 3, "out_channels": 768, "kernel_size": 16, "stride": 16, "padding": 0}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten_patches",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "pos_embedding",
+      "params": {"in_features": 150528, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout_embed",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "qkv_proj",
+      "params": {"in_features": 768, "out_features": 2304}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "attn_proj",
+      "params": {"in_features": 768, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout_attn",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "mlp1",
+      "params": {"in_features": 768, "out_features": 3072}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu_mlp",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "mlp2",
+      "params": {"in_features": 3072, "out_features": 768}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout_mlp",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "head",
+      "params": {"in_features": 768, "out_features": 1000}
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "id": "seq2seq_transformer",
+  "name": "序列到序列Transformer",
+  "description": "完整的Transformer架构（编码器-解码器），用于序列转换任务",
+  "category": "Transformer",
+  "icon": "🔄",
+  "difficulty": "advanced",
+  "tags": ["Transformer", "Seq2Seq", "机器翻译", "编码器-解码器"],
+  "use_cases": ["机器翻译", "文本摘要", "语音识别", "序列转换"],
+  "input_shape": [1, 512],
+  "layers": [
+    {
+      "layer_type": "Linear",
+      "name": "src_embed",
+      "params": {"in_features": 512, "out_features": 512}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "enc_dropout",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "enc_self_attn_qkv",
+      "params": {"in_features": 512, "out_features": 1536}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "enc_self_attn_out",
+      "params": {"in_features": 512, "out_features": 512}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "enc_ffn1",
+      "params": {"in_features": 512, "out_features": 2048}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "enc_ffn_act",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "enc_ffn2",
+      "params": {"in_features": 2048, "out_features": 512}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "enc_ffn_dropout",
+      "params": {"p": 0.1}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "dec_self_attn_qkv",
+      "params": {"in_features": 512, "out_features": 1536}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "dec_cross_attn_q",
+      "params": {"in_features": 512, "out_features": 512}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "dec_cross_attn_kv",
+      "params": {"in_features": 512, "out_features": 1024}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "dec_ffn1",
+      "params": {"in_features": 512, "out_features": 2048}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "dec_ffn_act",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "dec_ffn2",
+      "params": {"in_features": 2048, "out_features": 512}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "output_proj",
+      "params": {"in_features": 512, "out_features": 10000}
+    }
+  ]
+}

@@ -1,0 +1,73 @@
+{
+  "id": "lenet",
+  "name": "LeNet-5",
+  "description": "经典的LeNet-5架构，最早的卷积神经网络之一",
+  "category": "CNN",
+  "icon": "📜",
+  "difficulty": "beginner",
+  "tags": ["CNN", "经典架构", "LeNet", "历史意义"],
+  "use_cases": ["手写数字识别", "CNN入门学习", "历史架构研究"],
+  "input_shape": [1, 1, 32, 32],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 1, "out_channels": 6, "kernel_size": 5, "stride": 1, "padding": 0}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2",
+      "params": {"in_channels": 6, "out_channels": 16, "kernel_size": 5, "stride": 1, "padding": 0}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 400, "out_features": 120}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 120, "out_features": 84}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu4",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc3",
+      "params": {"in_features": 84, "out_features": 10}
+    }
+  ]
+}

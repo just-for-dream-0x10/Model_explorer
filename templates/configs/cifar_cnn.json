@@ -1,0 +1,73 @@
+{
+  "id": "cifar_cnn",
+  "name": "CIFAR-10 CNN",
+  "description": "适用于CIFAR-10彩色图像分类的中等CNN",
+  "category": "CNN",
+  "icon": "🖼️",
+  "difficulty": "intermediate",
+  "tags": ["CNN", "图像分类", "CIFAR", "彩色图像"],
+  "use_cases": ["CIFAR-10分类", "彩色图像识别", "中等复杂度模型"],
+  "input_shape": [1, 3, 32, 32],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 3, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn1",
+      "params": {"num_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2",
+      "params": {"in_channels": 64, "out_channels": 128, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn2",
+      "params": {"num_features": 128}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 32768, "out_features": 256}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout",
+      "params": {"p": 0.5}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 256, "out_features": 10}
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "id": "mnist_cnn",
+  "name": "MNIST CNN",
+  "description": "经典的MNIST手写数字识别卷积神经网络",
+  "category": "CNN",
+  "icon": "📱",
+  "difficulty": "beginner",
+  "tags": ["CNN", "图像分类", "入门", "MNIST"],
+  "use_cases": ["手写数字识别", "入门学习", "图像分类基础"],
+  "input_shape": [1, 1, 28, 28],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "conv1",
+      "params": {"in_channels": 1, "out_channels": 32, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn1",
+      "params": {"num_features": 32}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "conv2",
+      "params": {"in_channels": 32, "out_channels": 64, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "BatchNorm2d",
+      "name": "bn2",
+      "params": {"num_features": 64}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Flatten",
+      "name": "flatten",
+      "params": {}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc1",
+      "params": {"in_features": 3136, "out_features": 128}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu3",
+      "params": {}
+    },
+    {
+      "layer_type": "Dropout",
+      "name": "dropout",
+      "params": {"p": 0.5}
+    },
+    {
+      "layer_type": "Linear",
+      "name": "fc2",
+      "params": {"in_features": 128, "out_features": 10}
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "id": "conv_autoencoder",
+  "name": "卷积自编码器",
+  "description": "卷积自编码器，用于图像特征学习和重建",
+  "category": "Autoencoder",
+  "icon": "🔁",
+  "difficulty": "advanced",
+  "tags": ["自编码器", "卷积", "图像重建", "特征学习"],
+  "use_cases": ["图像去噪", "图像压缩", "特征学习", "异常检测"],
+  "input_shape": [1, 1, 28, 28],
+  "layers": [
+    {
+      "layer_type": "Conv2d",
+      "name": "encoder_conv1",
+      "params": {"in_channels": 1, "out_channels": 16, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu1",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool1",
+      "params": {"kernel_size": 2, "stride": 2}
+    },
+    {
+      "layer_type": "Conv2d",
+      "name": "encoder_conv2",
+      "params": {"in_channels": 16, "out_channels": 8, "kernel_size": 3, "stride": 1, "padding": 1}
+    },
+    {
+      "layer_type": "ReLU",
+      "name": "relu2",
+      "params": {}
+    },
+    {
+      "layer_type": "MaxPool2d",
+      "name": "pool2",
+      "params": {"kernel_size": 2, "stride": 2}
+    }
+  ]
+}
