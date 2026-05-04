@@ -339,7 +339,7 @@ def _gnn_node_classification(CHINESE_SUPPORTED):
     edge_indices = np.argwhere(edge_mask)
     if len(edge_indices) > 0:
         edge_x = np.concatenate([pos_x[edge_indices[:, 0]], pos_x[edge_indices[:, 1]], [None] * len(edge_indices)])
-        edge_y = np.concatenate([pos_y[edge_indices[:, 0]], pos_y[edge_indices[:, 1]], [None] * len(edge_indices))
+        edge_y = np.concatenate([pos_y[edge_indices[:, 0]], pos_y[edge_indices[:, 1]], [None] * len(edge_indices)])
         fig.add_trace(
             go.Scatter(
                 x=edge_x,

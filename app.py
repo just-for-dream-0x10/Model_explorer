@@ -31,6 +31,9 @@ _TAB_MODULES = {
     "performance_monitor": ("tabs.performance_monitor", "performance_monitor_tab"),
     "attention_analysis": ("tabs.attention_analysis", "attention_analysis_tab"),
     "model_compression": ("tabs.model_compression", "model_compression_tab"),
+    "generative_models": ("tabs.generative_models", "generative_models_tab"),
+    "optimizer_analysis": ("tabs.optimizer_analysis", "optimizer_analysis_tab"),
+    "loss_functions": ("tabs.loss_functions", "loss_functions_tab"),
     "cnn": ("cnn", "cnn_tab"),
     "gnn": ("gnn", "gnn_tab"),
     "rnn_lstm": ("rnn_lstm", "rnn_lstm_tab"),
@@ -169,6 +172,9 @@ else:
             "🔬 Architecture Lab": "architecture_comparison",
             "🧠 MoE Analysis": "moe_analysis",
             "✂️ Model Pruning": "model_pruning",
+            "🎨 Generative Models": "generative_models",
+            "⚙️ Optimizer Analysis": "optimizer_analysis",
+            "📉 Loss Functions": "loss_functions",
         }
 
 # 模块选择

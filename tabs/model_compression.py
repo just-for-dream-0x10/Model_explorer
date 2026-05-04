@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 from typing import Dict, List, Tuple, Optional
 
 from utils.visualization.chart_utils import ChartBuilder
+from simple_latex import display_latex
 
 
 # ============================================================
@@ -357,21 +358,17 @@ def _section_quantization(chart: ChartBuilder):
 
     # ---- 数学公式 ----
     st.markdown("#### 量化公式")
-    st.markdown(
-        r"""
-        量化核心公式：
-
-        $$q = \text{round}\left(\frac{r}{s}\right) + z$$
-
-        其中：
-        - $r$：原始浮点数值（real value）
-        - $s$：缩放因子（scale factor），$s = \frac{r_{\max} - r_{\min}}{q_{\max} - q_{\min}}$
-        - $z$：零点偏移（zero point），$z = \text{round}\left(\frac{-r_{\min}}{s}\right)$
-        - $q$：量化后的整数值
-
-        反量化：$r' = s \cdot (q - z)$
-        """
-    )
+    st.markdown("量化核心公式：")
+    st.latex(r"q = \text{round}\left(\frac{r}{s}\right) + z")
+    st.markdown("其中：")
+    st.markdown("- r：原始浮点数值（real value）")
+    display_latex(r"s = \frac{r_{\max} - r_{\min}}{q_{\max} - q_{\min}}")
+    st.markdown("- s：缩放因子（scale factor），上述公式")
+    st.markdown("- z：零点偏移（zero point）")
+    display_latex(r"z = \text{round}\left(\frac{-r_{\min}}{s}\right)")
+    st.markdown("- q：量化后的整数值")
+    st.markdown("反量化：")
+    display_latex(r"r' = s \cdot (q - z)")
 
     # ---- 对称 vs 非对称量化 ----
     st.markdown("#### 对称量化 vs 非对称量化")
@@ -380,22 +377,22 @@ def _section_quantization(chart: ChartBuilder):
         st.markdown(
             """
             **对称量化 (Symmetric)**
-            - 零点 $z = 0$
-            - $s = \frac{\max(|r|)}{2^{b-1} - 1}$
+            - 零点 z = 0
             - 计算简单，硬件友好
             - 适合权重（通常对称分布）
             """
         )
+        display_latex(r"s = \frac{\max(|r|)}{2^{b-1} - 1}")
     with col2:
         st.markdown(
             """
             **非对称量化 (Asymmetric)**
-            - 零点 $z \neq 0$
-            - $s = \frac{r_{\max} - r_{\min}}{2^b - 1}$
+            - 零点 z ≠ 0
             - 更充分利用量化范围
             - 适合激活值（可能偏移分布）
             """
         )
+        display_latex(r"s = \frac{r_{\max} - r_{\min}}{2^b - 1}")
 
     # ---- 位宽 vs 精度折线图 ----
     st.markdown("#### 位宽 vs 精度 / 模型大小 / 推理速度")
@@ -521,17 +518,15 @@ def _section_distillation(chart: ChartBuilder):
 
     # ---- 温度缩放公式 ----
     st.markdown("#### 温度缩放公式")
+    st.markdown("标准 softmax：")
+    st.latex(r"p_i = \frac{e^{z_i}}{\sum_j e^{z_j}}")
+    st.markdown("温度缩放 softmax：")
+    st.latex(r"p_i^{(T)} = \frac{e^{z_i / T}}{\sum_j e^{z_j / T}}")
     st.markdown(
-        r"""
-        标准 softmax：
-        $$p_i = \frac{e^{z_i}}{\sum_j e^{z_j}}$$
-
-        温度缩放 softmax：
-        $$p_i^{(T)} = \frac{e^{z_i / T}}{\sum_j e^{z_j / T}}$$
-
-        - $T = 1$：标准 softmax，输出接近 one-hot
-        - $T > 1$：软化分布，暴露类间关系（"暗知识"）
-        - $T \to \infty$：趋近均匀分布
+        """
+        - T = 1：标准 softmax，输出接近 one-hot
+        - T > 1：软化分布，暴露类间关系（"暗知识"）
+        - T → ∞：趋近均匀分布
         """
     )
 
@@ -586,15 +581,14 @@ def _section_distillation(chart: ChartBuilder):
 
     # ---- 损失函数 ----
     st.markdown("#### 蒸馏损失函数")
+    st.markdown("总损失：")
+    st.latex(r"\mathcal{L} = \alpha \cdot \mathcal{L}_{\text{hard}} + (1 - \alpha) \cdot \mathcal{L}_{\text{soft}} \cdot T^2")
     st.markdown(
-        r"""
-        总损失：
-        $$\mathcal{L} = \alpha \cdot \mathcal{L}_{\text{hard}} + (1 - \alpha) \cdot \mathcal{L}_{\text{soft}} \cdot T^2$$
-
-        - $\mathcal{L}_{\text{hard}}$：学生模型输出与真实标签的交叉熵
-        - $\mathcal{L}_{\text{soft}}$：学生软标签与教师软标签的 KL 散度
-        - $\alpha$：硬标签权重（通常 0.1~0.5）
-        - $T^2$：温度平方补偿（因为梯度随 $T^2$ 缩小）
+        """
+        - L_hard：学生模型输出与真实标签的交叉熵
+        - L_soft：学生软标签与教师软标签的 KL 散度
+        - alpha：硬标签权重（通常 0.1~0.5）
+        - T^2：温度平方补偿（因为梯度随 T^2 缩小）
         """
     )
 
@@ -624,14 +618,12 @@ def _section_distillation(chart: ChartBuilder):
         alpha, temp, 2.30, 0.85
     )
 
-    st.markdown(
-        f"""
-        **损失分解**：
-        - 硬标签贡献：$\alpha \\cdot L_{{hard}}$ = {alpha} x 2.30 = **{hard_c:.4f}**
-        - 软标签贡献：$(1-\\alpha) \\cdot L_{{soft}} \\cdot T^2$ = {1-alpha:.2f} x 0.85 x {temp}^2 = **{soft_c:.4f}**
-        - **总损失** = **{total:.4f}**
-        """
-    )
+    st.markdown("**损失分解**：")
+    st.markdown(f"- 硬标签贡献：alpha = {alpha} x 2.30 = **{hard_c:.4f}**")
+    display_latex(rf"\alpha \cdot L_{{hard}} = {alpha} \times 2.30 = {hard_c:.4f}")
+    st.markdown(f"- 软标签贡献：{1-alpha:.2f} x 0.85 x {temp}^2 = **{soft_c:.4f}**")
+    display_latex(rf"(1-\alpha) \cdot L_{{soft}} \cdot T^2 = {1-alpha:.2f} \times 0.85 \times {temp}^2 = {soft_c:.4f}")
+    st.markdown(f"- **总损失** = **{total:.4f}**")
 
     # alpha 和 T 对损失的影响图
     alphas = np.arange(0.0, 1.05, 0.05).tolist()
