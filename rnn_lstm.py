@@ -10,8 +10,6 @@ v2.2.0 新增：
 
 import streamlit as st
 import numpy as np
-import torch
-import torch.nn.functional as F
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -755,20 +753,7 @@ def rnn_lstm_tab(CHINESE_SUPPORTED):
         noisy_signal = clean_signal + noise
 
         # 使用动态参数建议器
-        from utils.parameter_suggester import get_suggested_params
-
-        try:
-            # 获取用户选择的序列长度
-            sequence_length = st.session_state.get("lstm_sequence_length", 20)
-        except:
-            # 如果获取失败，使用动态建议
-            suggested_params = get_suggested_params(
-                "rnn",
-                sequence_length=20,
-                input_size=1,  # 单变量时间序列
-                task_type="regression",
-            )
-            sequence_length = 20  # 保持默认值，但可以扩展
+        sequence_length = st.session_state.get("lstm_sequence_length", 20)
         X, y = [], []
         for i in range(len(noisy_signal) - sequence_length):
             X.append(noisy_signal[i : i + sequence_length])

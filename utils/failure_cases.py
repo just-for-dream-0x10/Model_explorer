@@ -7,6 +7,7 @@ Failure Cases Network Definitions
 
 import torch
 import torch.nn as nn
+from functools import lru_cache
 
 
 class DeepMLPWithoutSkip(nn.Module):
@@ -120,6 +121,65 @@ class TinyMLPWithHugeLR(nn.Module):
         return x
 
 
+# 案例元数据（不含模型实例，轻量级）
+_CASE_META = {
+    "deep_mlp": {
+        "name": "100层普通MLP（梯度消失）",
+        "problem": "梯度消失",
+        "symptom": "深层的梯度接近0，网络后层无法训练",
+        "reason": "Sigmoid激活函数的导数最大值为0.25，100层连乘后梯度趋近于0",
+        "solution": "使用残差连接(ResNet)或更换激活函数(ReLU/GELU)",
+        "input_size": (1, 10),
+        "loss_fn": "CrossEntropyLoss",
+    },
+    "conv_fc": {
+        "name": "卷积层直接接超大全连接",
+        "problem": "参数爆炸",
+        "symptom": "内存占用巨大（>12GB），训练速度极慢",
+        "reason": "64×224×224的特征图flatten后有3,211,264个神经元，接1000分类需32亿参数",
+        "solution": "使用全局平均池化(Global Average Pooling)降维",
+        "input_size": (1, 3, 224, 224),
+        "loss_fn": "CrossEntropyLoss",
+        "skip_forward": True,  # 32亿参数，跳过前向传播
+    },
+    "no_norm": {
+        "name": "20层卷积网络无归一化",
+        "problem": "训练不稳定",
+        "symptom": "Loss震荡，收敛困难，不同batch的激活值分布差异大",
+        "reason": "深层网络的激活值分布会逐渐偏移，导致梯度不稳定",
+        "solution": "在每层卷积后添加BatchNorm或LayerNorm",
+        "input_size": (1, 3, 32, 32),
+        "loss_fn": "CrossEntropyLoss",
+    },
+    "huge_lr": {
+        "name": "简单MLP + 超大学习率",
+        "problem": "梯度爆炸",
+        "symptom": "Loss变成NaN，权重数值溢出到inf",
+        "reason": "学习率过大（如lr=10.0），更新步长超出收敛范围",
+        "solution": "使用合理的学习率（0.001-0.01），或使用学习率调度器",
+        "input_size": (1, 10),
+        "loss_fn": "CrossEntropyLoss",
+        "bad_lr": 10.0,
+        "good_lr": 0.01,
+    },
+}
+
+
+@lru_cache(maxsize=4)
+def _get_cached_model(case_name: str):
+    """缓存模型实例，避免重复创建（尤其是32亿参数的conv_fc）"""
+    if case_name == "deep_mlp":
+        return DeepMLPWithoutSkip()
+    elif case_name == "conv_fc":
+        return ConvToFullyConnected()
+    elif case_name == "no_norm":
+        return DeepNetWithoutNorm()
+    elif case_name == "huge_lr":
+        return TinyMLPWithHugeLR()
+    else:
+        raise ValueError(f"未知案例: {case_name}")
+
+
 def get_failure_case(case_name):
     """
     获取指定的失败案例
@@ -132,58 +192,16 @@ def get_failure_case(case_name):
             - "huge_lr": 学习率过大梯度爆炸
 
     Returns:
-        model: PyTorch模型
+        model: PyTorch模型（缓存）
         description: 案例描述字典
     """
-    cases = {
-        "deep_mlp": {
-            "model": DeepMLPWithoutSkip(),
-            "name": "100层普通MLP（梯度消失）",
-            "problem": "梯度消失",
-            "symptom": "深层的梯度接近0，网络后层无法训练",
-            "reason": "Sigmoid激活函数的导数最大值为0.25，100层连乘后梯度趋近于0",
-            "solution": "使用残差连接(ResNet)或更换激活函数(ReLU/GELU)",
-            "input_size": (1, 10),
-            "loss_fn": "CrossEntropyLoss",
-        },
-        "conv_fc": {
-            "model": ConvToFullyConnected(),
-            "name": "卷积层直接接超大全连接",
-            "problem": "参数爆炸",
-            "symptom": "内存占用巨大（>12GB），训练速度极慢",
-            "reason": "64×224×224的特征图flatten后有3,211,264个神经元，接1000分类需32亿参数",
-            "solution": "使用全局平均池化(Global Average Pooling)降维",
-            "input_size": (1, 3, 224, 224),
-            "loss_fn": "CrossEntropyLoss",
-        },
-        "no_norm": {
-            "model": DeepNetWithoutNorm(),
-            "name": "20层卷积网络无归一化",
-            "problem": "训练不稳定",
-            "symptom": "Loss震荡，收敛困难，不同batch的激活值分布差异大",
-            "reason": "深层网络的激活值分布会逐渐偏移，导致梯度不稳定",
-            "solution": "在每层卷积后添加BatchNorm或LayerNorm",
-            "input_size": (1, 3, 32, 32),
-            "loss_fn": "CrossEntropyLoss",
-        },
-        "huge_lr": {
-            "model": TinyMLPWithHugeLR(),
-            "name": "简单MLP + 超大学习率",
-            "problem": "梯度爆炸",
-            "symptom": "Loss变成NaN，权重数值溢出到inf",
-            "reason": "学习率过大（如lr=10.0），更新步长超出收敛范围",
-            "solution": "使用合理的学习率（0.001-0.01），或使用学习率调度器",
-            "input_size": (1, 10),
-            "loss_fn": "CrossEntropyLoss",
-            "bad_lr": 10.0,
-            "good_lr": 0.01,
-        },
-    }
+    if case_name not in _CASE_META:
+        raise ValueError(f"未知案例: {case_name}. 可用案例: {list(_CASE_META.keys())}")
 
-    if case_name not in cases:
-        raise ValueError(f"未知案例: {case_name}. 可用案例: {list(cases.keys())}")
+    model = _get_cached_model(case_name)
+    case_info = dict(_CASE_META[case_name])  # 返回副本，防止缓存被修改
 
-    return cases[case_name]["model"], cases[case_name]
+    return model, case_info
 
 
 if __name__ == "__main__":

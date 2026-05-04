@@ -155,6 +155,11 @@ class TestCacheManager:
         self.cache.set("complex", complex_data)
         retrieved = self.cache.get("complex")
 
-        assert retrieved == complex_data
-        # 注意：set会被转换为list，因为JSON序列化限制
+        # set会被序列化为sorted list
         assert isinstance(retrieved["set"], list)
+        assert retrieved["set"] == sorted(complex_data["set"])
+        # tuple保持不变
+        assert retrieved["tuple"] == complex_data["tuple"]
+        # dict和list保持不变
+        assert retrieved["dict"] == complex_data["dict"]
+        assert retrieved["list"] == complex_data["list"]
