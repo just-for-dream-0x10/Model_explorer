@@ -23,10 +23,8 @@ import streamlit as st
 import torch
 import torch.nn as nn
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import numpy as np
 from PIL import Image
-import io
 import json
 from typing import List, Dict, Optional, Tuple
 
@@ -721,7 +719,7 @@ def architecture_designer_tab(chinese_supported=True):
                         valid_network = False
                         break
                     current_shape = config.output_shape
-                except:
+                except Exception as e:
                     valid_network = False
                     break
 
@@ -1208,7 +1206,7 @@ def architecture_designer_tab(chinese_supported=True):
                                 layer = create_layer_from_config(config, temp_shape)
                                 if config.output_shape:
                                     temp_shape = config.output_shape
-                            except:
+                            except Exception:
                                 pass
 
                         # 更新层列表
@@ -1238,8 +1236,54 @@ def architecture_designer_tab(chinese_supported=True):
                             if use_random:
                                 input_data = torch.randn(st.session_state.input_shape)
                             else:
-                                # TODO: 处理上传的图片
-                                input_data = torch.randn(st.session_state.input_shape)
+                                # 处理上传的图片
+                                if uploaded_file is not None:
+                                    image = Image.open(uploaded_file).convert("RGB")
+                                    img_array = np.array(image, dtype=np.float32)
+                                    if img_array.max() > 1.0:
+                                        img_array = img_array / 255.0
+                                    # HWC -> CHW
+                                    img_tensor = torch.from_numpy(
+                                        img_array.transpose(2, 0, 1)
+                                    )
+                                    # 调整到期望的输入形状 (batch_size, C, H, W)
+                                    expected_shape = st.session_state.input_shape
+                                    if len(expected_shape) == 3:
+                                        input_data = img_tensor.unsqueeze(0)
+                                        # 如果通道数不匹配，取灰度
+                                        if input_data.shape[1] != expected_shape[0]:
+                                            gray = Image.open(uploaded_file).convert("L")
+                                            gray_array = np.array(gray, dtype=np.float32)
+                                            if gray_array.max() > 1.0:
+                                                gray_array = gray_array / 255.0
+                                            input_data = torch.from_numpy(
+                                                gray_array
+                                            ).unsqueeze(0).unsqueeze(0)
+                                            # 复制到目标通道数
+                                            input_data = input_data.expand(
+                                                -1, expected_shape[0], -1, -1
+                                            )
+                                        # 调整空间尺寸
+                                        if (
+                                            input_data.shape[2] != expected_shape[1]
+                                            or input_data.shape[3] != expected_shape[2]
+                                        ):
+                                            input_data = torch.nn.functional.interpolate(
+                                                input_data,
+                                                size=(expected_shape[1], expected_shape[2]),
+                                                mode="bilinear",
+                                                align_corners=False,
+                                            )
+                                    else:
+                                        input_data = torch.randn(
+                                            st.session_state.input_shape
+                                        )
+                                        st.warning(
+                                            "不支持的输入形状，已回退为随机数据"
+                                        )
+                                else:
+                                    st.warning("请先上传图片，或勾选'使用随机数据'")
+                                    st.stop()
 
                             # 前向传播
                             output, activations = simulate_forward_pass(

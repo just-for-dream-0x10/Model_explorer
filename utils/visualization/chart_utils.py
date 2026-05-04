@@ -187,6 +187,56 @@ class ChartBuilder:
 
         return fig
 
+    def create_scatter_plot(
+        self,
+        x_data: List[Union[int, float]],
+        y_data: List[Union[int, float]],
+        title: str,
+        x_title: str = "X轴",
+        y_title: str = "Y轴",
+        color: Optional[str] = None,
+        height: int = 400,
+        **kwargs,
+    ) -> go.Figure:
+        """创建散点图
+
+        Args:
+            x_data: X轴数据
+            y_data: Y轴数据
+            title: 图表标题
+            x_title: X轴标题
+            y_title: Y轴标题
+            color: 散点颜色
+            height: 图表高度
+            **kwargs: 其他参数
+
+        Returns:
+            Plotly图表对象
+        """
+        fig = go.Figure()
+
+        fig.add_trace(
+            go.Scatter(
+                x=x_data,
+                y=y_data,
+                mode="markers",
+                marker={"size": 10, "color": color or self.colors[0]},
+            )
+        )
+
+        # 更新布局
+        layout = {
+            "title": {"text": title, "x": 0.5},
+            "xaxis": {"title": x_title},
+            "yaxis": {"title": y_title},
+            "height": height,
+            **self.layout_config,
+        }
+        layout.update(kwargs)
+        fig.update_layout(**layout)
+
+        return fig
+
     def create_heatmap(self, data: np.ndarray, title: str, **kwargs) -> go.Figure:
         """创建热力图
 

@@ -39,14 +39,15 @@ class CacheManager:
         self._lock = threading.RLock()
         self._access_order = []  # LRU访问顺序
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str, default: Optional[Any] = None) -> Optional[Any]:
         """获取缓存值
 
         Args:
             key: 缓存键
+            default: 键不存在时的默认返回值
 
         Returns:
-            缓存值，如果不存在或过期则返回None
+            缓存值，如果不存在或过期则返回default（默认为None）
 
         Raises:
             CacheError: 当缓存操作失败时
@@ -54,14 +55,14 @@ class CacheManager:
         try:
             with self._lock:
                 if key not in self._cache:
-                    return None
+                    return default
 
                 entry = self._cache[key]
 
                 # 检查是否过期
                 if self._is_expired(entry):
                     self._remove_entry(key)
-                    return None
+                    return default
 
                 # 更新访问时间
                 entry["accessed_at"] = time.time()
@@ -91,8 +92,11 @@ class CacheManager:
                 current_time = time.time()
                 ttl = ttl if ttl is not None else self.default_ttl
 
+                # 序列化不可JSON序列化的类型（set -> list）
+                serialized_value = self._serialize_value(value)
+
                 self._cache[key] = {
-                    "value": value,
+                    "value": serialized_value,
                     "created_at": current_time,
                     "accessed_at": current_time,
                     "ttl": ttl,
@@ -189,6 +193,24 @@ class CacheManager:
             是否过期
         """
         return time.time() > entry["expires_at"]
+
+    @staticmethod
+    def _serialize_value(value: Any) -> Any:
+        """序列化缓存值，将不可JSON序列化的类型转换为可序列化类型
+
+        Args:
+            value: 原始值
+
+        Returns:
+            序列化后的值
+        """
+        if isinstance(value, set):
+            return sorted(value)
+        if isinstance(value, dict):
+            return {k: CacheManager._serialize_value(v) for k, v in value.items()}
+        if isinstance(value, list):
+            return [CacheManager._serialize_value(item) for item in value]
+        return value
 
     def _remove_entry(self, key: str) -> None:
         """移除缓存条目

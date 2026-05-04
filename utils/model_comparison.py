@@ -218,7 +218,7 @@ def get_data_efficiency_curve(model_type: str) -> Dict:
     """
     生成数据效率曲线
 
-    展示不同数据量下的模型性能
+    展示不同数据量下的模型性能，基于性能预测器动态计算
 
     Args:
         model_type: "CNN" 或 "Transformer"
@@ -227,18 +227,44 @@ def get_data_efficiency_curve(model_type: str) -> Dict:
         curve: 数据效率曲线
     """
     data_ratios = [0.1, 0.2, 0.3, 0.5, 0.7, 1.0]
+    base_dataset_size = 50000  # 基准数据集大小
 
-    if model_type == "CNN":
-        # CNN在小数据上表现好
-        base_acc = 0.65
-        accuracies = [0.65, 0.72, 0.76, 0.82, 0.86, 0.88]
-    else:  # Transformer
-        # ViT在小数据上表现差，大数据上表现好
-        base_acc = 0.50
-        accuracies = [0.50, 0.60, 0.68, 0.78, 0.85, 0.91]
+    # 模型参数配置
+    model_params_map = {
+        "CNN": 5e6,
+        "Transformer": 20e6,
+    }
+    model_depth_map = {
+        "CNN": 10,
+        "Transformer": 12,
+    }
 
-    # 添加一些随机波动
-    accuracies = [acc + np.random.normal(0, 0.01) for acc in accuracies]
+    actual_params = model_params_map.get(model_type, 5e6)
+    actual_depth = model_depth_map.get(model_type, 10)
+
+    accuracies = []
+    for ratio in data_ratios:
+        dataset_size = int(base_dataset_size * ratio)
+
+        model_config = create_model_config(
+            model_type=model_type,
+            num_params=actual_params,
+            model_depth=actual_depth,
+        )
+        dataset_config = create_dataset_config(
+            dataset_size=dataset_size, num_classes=10, data_complexity=0.5
+        )
+        training_config = create_training_config(
+            learning_rate=0.001, batch_size=32, num_epochs=100
+        )
+
+        predictor = PerformancePredictor()
+        curves = predictor.predict_training_performance(
+            model_config=model_config,
+            dataset_config=dataset_config,
+            training_config=training_config,
+        )
+        accuracies.append(curves["best_val_acc"])
 
     return {"data_ratios": data_ratios, "accuracies": accuracies}
 
@@ -316,7 +342,7 @@ if __name__ == "__main__":
     print("\n### 训练曲线生成测试 ###")
     for model_type in ["CNN", "Transformer"]:
         for dataset_size in ["small", "large"]:
-            curves = generate_training_curve(model_type, dataset_size, num_epochs=50)
+            curves = generate_training_curves(model_type, dataset_size, num_epochs=50)
             print(f"\n{model_type} on {dataset_size} dataset:")
             print(f"  最终验证精度: {curves['final_val_acc']:.4f}")
             print(f"  最佳验证精度: {curves['best_val_acc']:.4f}")
@@ -325,8 +351,8 @@ if __name__ == "__main__":
     # 测试收敛速度对比
     print("\n### 收敛速度对比测试 ###")
     curves_dict = {
-        "ResNet-18": generate_training_curve("CNN", "medium", num_epochs=100),
-        "ViT-Tiny": generate_training_curve("Transformer", "medium", num_epochs=100),
+        "ResNet-18": generate_training_curves("CNN", "medium", num_epochs=100),
+        "ViT-Tiny": generate_training_curves("Transformer", "medium", num_epochs=100),
     }
     comparison = compare_convergence_speed(curves_dict)
     for model_name, stats in comparison.items():

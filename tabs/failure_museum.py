@@ -15,13 +15,14 @@ from plotly.subplots import make_subplots
 from utils.failure_cases import get_failure_case
 
 
-def calculate_params_and_memory(model, input_size):
+def calculate_params_and_memory(model, input_size, skip_forward=False):
     """
     计算模型的参数量和内存占用
 
     Args:
         model: PyTorch模型
         input_size: 输入尺寸 (tuple)
+        skip_forward: 是否跳过前向传播（用于超大模型）
 
     Returns:
         dict: 包含参数量、内存等信息
@@ -34,13 +35,15 @@ def calculate_params_and_memory(model, input_size):
     param_memory = total_params * 4 / (1024**2)
 
     # 估算激活值内存（简化计算）
-    try:
-        x = torch.randn(input_size)
-        with torch.no_grad():
-            y = model(x)
-        activation_memory = np.prod(y.shape) * 4 / (1024**2)
-    except:
-        activation_memory = 0
+    activation_memory = 0.0
+    if not skip_forward:
+        try:
+            x = torch.randn(input_size)
+            with torch.no_grad():
+                y = model(x)
+            activation_memory = np.prod(y.shape) * 4 / (1024**2)
+        except Exception:
+            activation_memory = 0
 
     return {
         "total_params": total_params,
@@ -290,7 +293,8 @@ def failure_museum_tab(chinese_supported=True):
     st.subheader("📊 参数量与内存分析")
 
     with st.spinner("计算中..."):
-        stats = calculate_params_and_memory(model, case_info["input_size"])
+        skip_fwd = case_info.get("skip_forward", False)
+        stats = calculate_params_and_memory(model, case_info["input_size"], skip_forward=skip_fwd)
 
     col1, col2, col3, col4 = st.columns(4)
 

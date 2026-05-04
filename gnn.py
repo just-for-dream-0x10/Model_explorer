@@ -62,9 +62,6 @@ def gnn_tab(CHINESE_SUPPORTED):
 
     st.header("🕸️ GNN图神经网络数学原理")
 
-    # 初始化图表工具
-    chart_builder = ChartBuilder()
-
     display_latex("H^{(l+1)} = \\sigma(\\tilde{A} H^{(l)} W^{(l)})")
 
     col1, col2 = st.columns([1, 1])
