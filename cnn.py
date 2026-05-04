@@ -32,14 +32,20 @@ def _safe_2d_multiply(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     return a[:min_h, :min_w] * b[:min_h, :min_w]
 
 
+@st.cache_data
+def compute_convolution(input_image_tuple, kernel_tuple, mode="same"):
+    """缓存卷积计算结果，避免每次rerun重复计算"""
+    input_image = np.array(input_image_tuple)
+    kernel = np.array(kernel_tuple)
+    return signal.convolve2d(input_image, kernel, mode=mode)
+
+
 # 辅助函数：生成不同类型的图案
 def create_checkerboard(size, square_size=8):
-    """创建棋盘格图案"""
+    """创建棋盘格图案（numpy向量化实现）"""
     pattern = np.zeros((size, size))
-    for i in range(size):
-        for j in range(size):
-            if (i // square_size + j // square_size) % 2 == 0:
-                pattern[i, j] = 1
+    pattern[::2, ::2] = 1
+    pattern[1::2, 1::2] = 1
     return pattern
 
 
@@ -217,8 +223,12 @@ def cnn_tab(CHINESE_SUPPORTED):
         demo_stride = st.slider("步长", 1, 4, 1)
         demo_padding = st.slider("填充", 0, 3, 0)
 
-        # 执行卷积
-        conv_result = signal.convolve2d(demo_input_image, demo_kernel, mode="same")
+        # 执行卷积（使用缓存避免重复计算）
+        conv_result = compute_convolution(
+            tuple(map(tuple, demo_input_image)),
+            tuple(map(tuple, demo_kernel)),
+            mode="same",
+        )
 
         # 应用步长
         if demo_stride > 1:

@@ -125,11 +125,8 @@ def _cnn_feature_visualization(CHINESE_SUPPORTED):
             input_image = np.random.rand(image_size, image_size)
         elif pattern_type == "棋盘格":
             input_image = np.zeros((image_size, image_size))
-            square_size = image_size // 4
-            for i in range(0, image_size, square_size):
-                for j in range(0, image_size, square_size):
-                    if (i // square_size + j // square_size) % 2 == 0:
-                        input_image[i : i + square_size, j : j + square_size] = 1
+            input_image[::2, ::2] = 1
+            input_image[1::2, 1::2] = 1
         elif pattern_type == "圆形":
             input_image = np.zeros((image_size, image_size))
             center = image_size // 2
@@ -337,20 +334,22 @@ def _gnn_node_classification(CHINESE_SUPPORTED):
 
     fig = go.Figure()
 
-    # 绘制边
-    for i in range(num_nodes):
-        for j in range(i + 1, num_nodes):
-            if adj_matrix[i, j] > 0:
-                fig.add_trace(
-                    go.Scatter(
-                        x=[pos_x[i], pos_x[j]],
-                        y=[pos_y[i], pos_y[j]],
-                        mode="lines",
-                        line=dict(color="gray", width=1),
-                        showlegend=False,
-                        hoverinfo="none",
-                    )
-                )
+    # 绘制边（向量化：用numpy提取所有边坐标，单次add_trace）
+    edge_mask = np.triu(adj_matrix > 0, k=1)
+    edge_indices = np.argwhere(edge_mask)
+    if len(edge_indices) > 0:
+        edge_x = np.concatenate([pos_x[edge_indices[:, 0]], pos_x[edge_indices[:, 1]], [None] * len(edge_indices)])
+        edge_y = np.concatenate([pos_y[edge_indices[:, 0]], pos_y[edge_indices[:, 1]], [None] * len(edge_indices))
+        fig.add_trace(
+            go.Scatter(
+                x=edge_x,
+                y=edge_y,
+                mode="lines",
+                line=dict(color="gray", width=1),
+                showlegend=False,
+                hoverinfo="none",
+            )
+        )
 
     # 绘制节点
     fig.add_trace(

@@ -6,29 +6,47 @@ Neural Network Math Explorer - 主应用入口
 """
 
 import streamlit as st
+import importlib
 
 # 导入工具模块
 from utils import CHINESE_SUPPORTED, get_text
 
-# 导入标签页模块
-from tabs.params_calculator import params_calculator_tab
-from tabs.math_derivation import math_derivation_tab
-from tabs.backpropagation import backpropagation_tab
-from tabs.interactive_lab import interactive_lab_tab
-from tabs.failure_museum import failure_museum_tab
-from tabs.resnet_analysis import resnet_analysis_tab
-from tabs.normalization_comparison import normalization_comparison_tab
-from tabs.vit_analysis import vit_analysis_tab
-from tabs.architecture_comparison import architecture_comparison_tab
-from tabs.memory_analysis import memory_analysis_tab
-from tabs.stability_diagnosis import stability_diagnosis_tab
-from tabs.architecture_designer import architecture_designer_tab
-from tabs.moe_analysis import moe_analysis_tab
-from tabs.model_pruning import model_pruning_tab
-from tabs.single_neuron import single_neuron_tab
-from cnn import cnn_tab
-from gnn import gnn_tab
-from rnn_lstm import rnn_lstm_tab
+# 标签页模块懒加载映射：模块名 -> (模块路径, 函数名)
+_TAB_MODULES = {
+    "params_calculator": ("tabs.params_calculator", "params_calculator_tab"),
+    "math_derivation": ("tabs.math_derivation", "math_derivation_tab"),
+    "memory_analysis": ("tabs.memory_analysis", "memory_analysis_tab"),
+    "stability_diagnosis": ("tabs.stability_diagnosis", "stability_diagnosis_tab"),
+    "architecture_designer": ("tabs.architecture_designer", "architecture_designer_tab"),
+    "single_neuron": ("tabs.single_neuron", "single_neuron_tab"),
+    "backpropagation": ("tabs.backpropagation", "backpropagation_tab"),
+    "interactive_lab": ("tabs.interactive_lab", "interactive_lab_tab"),
+    "failure_museum": ("tabs.failure_museum", "failure_museum_tab"),
+    "resnet_analysis": ("tabs.resnet_analysis", "resnet_analysis_tab"),
+    "normalization_comparison": ("tabs.normalization_comparison", "normalization_comparison_tab"),
+    "vit_analysis": ("tabs.vit_analysis", "vit_analysis_tab"),
+    "architecture_comparison": ("tabs.architecture_comparison", "architecture_comparison_tab"),
+    "moe_analysis": ("tabs.moe_analysis", "moe_analysis_tab"),
+    "model_pruning": ("tabs.model_pruning", "model_pruning_tab"),
+    "performance_monitor": ("tabs.performance_monitor", "performance_monitor_tab"),
+    "attention_analysis": ("tabs.attention_analysis", "attention_analysis_tab"),
+    "model_compression": ("tabs.model_compression", "model_compression_tab"),
+    "cnn": ("cnn", "cnn_tab"),
+    "gnn": ("gnn", "gnn_tab"),
+    "rnn_lstm": ("rnn_lstm", "rnn_lstm_tab"),
+}
+
+# 模块缓存，避免重复导入
+_tab_cache = {}
+
+
+def _load_tab(module_name):
+    """按需加载标签页模块"""
+    if module_name not in _tab_cache:
+        module_path, func_name = _TAB_MODULES[module_name]
+        mod = importlib.import_module(module_path)
+        _tab_cache[module_name] = getattr(mod, func_name)
+    return _tab_cache[module_name]
 
 # ==========================================
 # 页面配置
@@ -109,10 +127,12 @@ if CHINESE_SUPPORTED:
             "🏛️ 失败案例博物馆": "failure_museum",
             "🏗️ ResNet残差分析": "resnet_analysis",
             "🔧 归一化层对比": "normalization",
+            "📦 模型压缩分析": "model_compression",
         }
     else:  # 🚀 现代架构
         module_options = {
             "🔍 Vision Transformer分析": "vit_analysis",
+            "🧠 注意力机制分析": "attention_analysis",
             "🔬 架构对比实验室": "architecture_comparison",
             "🧠 MoE专家混合分析": "moe_analysis",
             "✂️ 模型剪枝分析": "model_pruning",
@@ -140,10 +160,12 @@ else:
             "🏛️ Failure Museum": "failure_museum",
             "🏗️ ResNet Analysis": "resnet_analysis",
             "🔧 Normalization": "normalization",
+            "📦 Model Compression": "model_compression",
         }
     else:  # 🚀 Modern Architectures
         module_options = {
             "🔍 ViT Analysis": "vit_analysis",
+            "🧠 Attention Analysis": "attention_analysis",
             "🔬 Architecture Lab": "architecture_comparison",
             "🧠 MoE Analysis": "moe_analysis",
             "✂️ Model Pruning": "model_pruning",
@@ -167,44 +189,19 @@ st.sidebar.info(
 )
 
 # ==========================================
-# 根据选择的模块显示内容
+# 根据选择的模块显示内容（懒加载）
 # ==========================================
-if selected_module == "params_calculator":
-    params_calculator_tab()
-elif selected_module == "memory_analysis":
-    memory_analysis_tab(CHINESE_SUPPORTED)
-elif selected_module == "stability_diagnosis":
-    stability_diagnosis_tab(CHINESE_SUPPORTED)
-elif selected_module == "architecture_designer":
-    architecture_designer_tab(CHINESE_SUPPORTED)
-elif selected_module == "math_derivation":
-    math_derivation_tab()
-elif selected_module == "interactive_lab":
-    interactive_lab_tab(CHINESE_SUPPORTED)
-elif selected_module == "single_neuron":
-    single_neuron_tab(CHINESE_SUPPORTED)
-elif selected_module == "cnn":
-    cnn_tab(CHINESE_SUPPORTED)
-elif selected_module == "gnn":
-    gnn_tab(CHINESE_SUPPORTED)
-elif selected_module == "rnn_lstm":
-    rnn_lstm_tab(CHINESE_SUPPORTED)
-elif selected_module == "backpropagation":
-    backpropagation_tab(CHINESE_SUPPORTED)
-elif selected_module == "failure_museum":
-    failure_museum_tab(CHINESE_SUPPORTED)
-elif selected_module == "resnet_analysis":
-    resnet_analysis_tab(CHINESE_SUPPORTED)
-elif selected_module == "normalization":
-    normalization_comparison_tab(CHINESE_SUPPORTED)
-elif selected_module == "vit_analysis":
-    vit_analysis_tab(CHINESE_SUPPORTED)
-elif selected_module == "architecture_comparison":
-    architecture_comparison_tab(selected_module)
-elif selected_module == "moe_analysis":
-    moe_analysis_tab(CHINESE_SUPPORTED)
-elif selected_module == "model_pruning":
-    model_pruning_tab(CHINESE_SUPPORTED)
+if selected_module in _TAB_MODULES:
+    tab_func = _load_tab(selected_module)
+    # 根据各模块的函数签名传递参数
+    if selected_module == "params_calculator":
+        tab_func()
+    elif selected_module == "math_derivation":
+        tab_func()
+    elif selected_module == "architecture_comparison":
+        tab_func(selected_module)
+    else:
+        tab_func(CHINESE_SUPPORTED)
 
 # ==========================================
 # 页脚
